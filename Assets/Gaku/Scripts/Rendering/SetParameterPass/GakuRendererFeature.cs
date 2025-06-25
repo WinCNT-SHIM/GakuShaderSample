@@ -26,5 +26,10 @@ namespace Gaku
         {
             renderer.EnqueuePass(_gakuRenderPass);
         }
+
+        public void AddCharacterToList(GakuMaterialController gakuMaterialController)
+        {
+            throw new System.NotImplementedException();
+        }
     }
 }

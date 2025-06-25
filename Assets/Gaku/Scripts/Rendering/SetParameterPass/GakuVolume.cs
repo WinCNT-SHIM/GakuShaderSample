@@ -22,7 +22,7 @@ namespace Gaku
         // // Shader.SetGlobalVector("_HeadDirection", Face.transform.forward);
         // // Shader.SetGlobalVector("_HeadUpDirection", Face.transform.up);
         public ColorParameter _EyeHightlightColor = new ColorParameter(Color.white, hdr: true, showAlpha: true, showEyeDropper: true);
-        public FloatParameter _OutlineParam = new FloatParameter(0.2f);
+        // public FloatParameter _OutlineParam = new FloatParameter(0.2f);
         public Vector4Parameter _FadeParam = new Vector4Parameter(Vector4.zero);
     }
 }
