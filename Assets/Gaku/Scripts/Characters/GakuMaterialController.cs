@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
+using UnityEngine.Serialization;
 
 namespace Gaku
 {
@@ -10,19 +11,37 @@ namespace Gaku
     [DefaultExecutionOrder(100)]
     public class GakuMaterialController : MonoBehaviour
     {
-        [SerializeField] private Transform pelvisBoneTransform;
-        [SerializeField] private Transform headBoneTransform;
-        [SerializeField] private Transform faceBoneTransform;
+        private enum TransformDirection
+        {
+            X, Y, Z,
+            negX, negY, negZ,
+        }
+        
+        [SerializeField] private Transform pelvis;
+        [SerializeField] private Transform headFace;
+        
+        [SerializeField] private TransformDirection faceForwardDirection = TransformDirection.negX;
+        [SerializeField] private TransformDirection faceUpDirection = TransformDirection.Y;
+        [SerializeField] private TransformDirection faceRightDirection = TransformDirection.Z;
+        [SerializeField] [Range(0f, 0.5f)] private float headOffset = 0.2f;
+        
+        [SerializeField] [ColorUsage(true, true)]private Color eyeHightlightColor = Color.white;
+        [SerializeField] [Range(0f, 10f)] private float outline = 0.2f;
         
         private List<Renderer> gakuRenderers = new();
         private MaterialPropertyBlock materialPropertyBlock;
         private readonly List<Material> tempMaterialList = new();
         private GakuMaterialController gakuMaterialController;
         
+        private Vector3 faceForwardDirectionWs;
+        private Vector3 faceUpDirectionWs;
+        private Vector3 faceRightDirectionWs;
+        private Vector3 facePositionWs;
 #region Shader Properties
-        private static readonly int OutlineParamSid = Shader.PropertyToID("_OutlineParam");
         private static readonly int HeadDirectionSid = Shader.PropertyToID("_HeadDirection");
         private static readonly int HeadUpDirectionSid = Shader.PropertyToID("_HeadUpDirection");
+        private static readonly int EyeHightlightColor = Shader.PropertyToID("_EyeHightlightColor");
+        private static readonly int OutlineParamSid = Shader.PropertyToID("_OutlineParam");
 #endregion
         
         private void OnEnable()
@@ -45,11 +64,12 @@ namespace Gaku
             var shouldFindRenderers = gakuRenderers.Count == 0 || anyRendererIsNull;
             if (shouldFindRenderers) FindGakuRenderers();
 
-            if (headBoneTransform)
+            if (headFace)
             {
-                // TODO
-                
-                
+                faceForwardDirectionWs = GetFaceDirectionWorldSpace(faceForwardDirection);
+                faceUpDirectionWs = GetFaceDirectionWorldSpace(faceUpDirection);
+                faceRightDirectionWs = GetFaceDirectionWorldSpace(faceRightDirection);
+                facePositionWs = headFace.position + faceUpDirectionWs * headOffset;
             }
             
             foreach (var charaRenderer in gakuRenderers)
@@ -84,15 +104,28 @@ namespace Gaku
         
         private void UpdateMaterial(Material material)
         {
+            material.SetColor(EyeHightlightColor, eyeHightlightColor);
+            material.SetFloat(OutlineParamSid, outline);
             
+            if (!headFace) return;
+            material.SetVector(HeadDirectionSid, faceForwardDirectionWs);
+            material.SetVector(HeadUpDirectionSid, faceUpDirectionWs);
         }
         
-        private void FindBones()
+        private Vector3 GetFaceDirectionWorldSpace(TransformDirection direction)
         {
-            var children = GetComponentsInChildren<Transform>();
-            if (!headBoneTransform)
-                headBoneTransform = children.FirstOrDefault(t =>
-                    t.gameObject.name.Equals("Head", StringComparison.OrdinalIgnoreCase));
+            var right = headFace.right;
+            var up = headFace.up;
+            var forward = headFace.forward;
+            return direction switch {
+                TransformDirection.X => right,
+                TransformDirection.Y => up,
+                TransformDirection.Z => forward,
+                TransformDirection.negX => -right,
+                TransformDirection.negY => -up,
+                TransformDirection.negZ => -forward,
+                _ => throw new NotImplementedException()
+            };
         }
         
         private void FindGakuRenderers()
@@ -103,8 +136,16 @@ namespace Gaku
                 return charaRenderer.sharedMaterials
                     .Where(mat => mat)
                     .Where(mat => mat.shader)
-                    .Any(mat => mat.shader.name.Contains("Gaku/Character"));
+                    .Any(mat => mat.shader.name.Contains("Gaku/Character/Default"));
             });
+        }
+        
+        private void FindBones()
+        {
+            var children = GetComponentsInChildren<Transform>();
+            if (!headFace)
+                headFace = children.FirstOrDefault(t =>
+                    t.gameObject.name.Equals("Head_Face", StringComparison.OrdinalIgnoreCase));
         }
     }
 }
