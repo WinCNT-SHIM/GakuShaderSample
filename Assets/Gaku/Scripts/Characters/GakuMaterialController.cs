@@ -31,6 +31,7 @@ namespace Gaku
         private List<Renderer> gakuRenderers = new();
         private MaterialPropertyBlock materialPropertyBlock;
         private readonly List<Material> tempMaterialList = new();
+        private bool? lastFrameShouldEditMaterial;
         private GakuMaterialController gakuMaterialController;
         
         private Vector3 faceForwardDirectionWs;
@@ -72,13 +73,29 @@ namespace Gaku
                 facePositionWs = headFace.position + faceUpDirectionWs * headOffset;
             }
             
-            foreach (var charaRenderer in gakuRenderers)
+            var shouldEditMaterial = Application.isPlaying;
+            if (shouldEditMaterial)
             {
-                if (!charaRenderer) return;
-                charaRenderer.GetMaterials(tempMaterialList);
-                foreach (var material in tempMaterialList)
-                    UpdateMaterial(material);
+                foreach (var charaRenderer in gakuRenderers)
+                {
+                    if (!charaRenderer) return;
+                    if (lastFrameShouldEditMaterial is false) charaRenderer.SetPropertyBlock(null);
+                    charaRenderer.GetMaterials(tempMaterialList);
+                    foreach (var material in tempMaterialList)
+                        UpdateMaterial(material);
+                }
             }
+            else
+            {
+                materialPropertyBlock ??= new MaterialPropertyBlock();
+                foreach (var charaRenderer in gakuRenderers) {
+                    if (!charaRenderer) return;
+                    if (charaRenderer.HasPropertyBlock()) charaRenderer.GetPropertyBlock(materialPropertyBlock);
+                    UpdateMaterialPropertyBlock(materialPropertyBlock);
+                    charaRenderer.SetPropertyBlock(materialPropertyBlock);
+                }
+            }
+            lastFrameShouldEditMaterial = shouldEditMaterial;
         }
         
         private void AddCharacterListToRendererFeature()
@@ -110,6 +127,16 @@ namespace Gaku
             if (!headFace) return;
             material.SetVector(HeadDirectionSid, faceForwardDirectionWs);
             material.SetVector(HeadUpDirectionSid, faceUpDirectionWs);
+        }
+
+        private void UpdateMaterialPropertyBlock(MaterialPropertyBlock mpb)
+        {
+            mpb.SetColor(EyeHightlightColor, eyeHightlightColor);
+            mpb.SetFloat(OutlineParamSid, outline);
+            
+            if (!headFace) return;
+            mpb.SetVector(HeadDirectionSid, faceForwardDirectionWs);
+            mpb.SetVector(HeadUpDirectionSid, faceUpDirectionWs);
         }
         
         private Vector3 GetFaceDirectionWorldSpace(TransformDirection direction)
