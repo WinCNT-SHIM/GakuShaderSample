@@ -43,6 +43,8 @@ Varyings GakuLitPassVertex(Attributes input)
 
     output.NormalWS = normalInput.normalWS;
     output.PositionWS = vertexInput.positionWS;
+    output.ShadowCoord = GetShadowCoord(vertexInput);
+    
     output.PositionCS = vertexInput.positionCS;
     
     return output;
@@ -65,18 +67,34 @@ void GakuLitPassFragment(
     float3 NormalWS = normalize(input.NormalWS);
     NormalWS = IsFront ? NormalWS : NormalWS * -1.0f;
     
-    float TextureBias = _GlobalMipBias.x - 1;
-    float4 BaseMap = SAMPLE_TEXTURE2D_BIAS(_BaseMap, sampler_BaseMap, input.UV.xy, TextureBias);
-    color = BaseMap;
-
+    half3 ViewDirection = GetWorldSpaceNormalizeViewDir(input.PositionWS);
+    float Shadow = MainLightRealtimeShadow(input.ShadowCoord);
+    
     Light mainLight = GetMainLight();
     float NoL = dot(NormalWS, mainLight.direction);
     // float MatCapNoL = dot(NormalMatS, _MatCapMainLight);
     // bool DisableMatCap = _MatCapMainLight.w > 0.5f;
     // NoL = DisableMatCap ? NoL : MatCapNoL;
-	float BaseLighting = NoL * 0.5f + 0.5f;
-
-    color = color * BaseLighting;
+    float BaseLighting = NoL * 0.5f + 0.5f;
     
-    outColor = color;
+    half4 BaseMap = SAMPLE_TEXTURE2D(_BaseMap, sampler_BaseMap, input.UV.xy);
+    half4 ShadeMap = SAMPLE_TEXTURE2D(_ShadeMap, sampler_ShadeMap, input.UV.xy);
+    float2 RampMapUV = float2(BaseLighting, 0);
+    half4 RampMap = SAMPLE_TEXTURE2D(_RampMap, sampler_RampMap, RampMapUV);
+    outColor = RampMap;
+    
+    const float ShadowIntensity = 1; // _MatCapParam.z?
+    float3 RampedLighting = lerp(BaseMap.xyz, ShadeMap.xyz * _ShadeMultiplyColor, RampMap.w * ShadowIntensity);
+    float3 SkinRampedLighting =	lerp(RampMap, RampMap.xyz * _ShadeMultiplyColor, RampMap.w);
+    SkinRampedLighting = lerp(1, SkinRampedLighting, ShadowIntensity);
+    SkinRampedLighting = BaseMap * SkinRampedLighting;
+    RampedLighting = lerp(RampedLighting, SkinRampedLighting, ShadeMap.w);
+    
+    float SkinSaturation = _SkinSaturation - 1;
+    SkinSaturation = SkinSaturation * ShadeMap.w + 1.0f;
+    RampedLighting = lerp(Luminance(RampedLighting), RampedLighting, SkinSaturation);
+    RampedLighting *= _BaseColor;
+    
+    outColor.rgb = RampedLighting;
+    // outColor = color;
 }
