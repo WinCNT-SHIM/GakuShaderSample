@@ -25,6 +25,17 @@ struct Varyings
     float4 PrePosionCS          : TEXCOORD8;
 };
 
+BRDFData G_InitialBRDFData(float3 BaseColor, float Smoothness, float Metallic, float Specular, bool IsEye)
+{
+    float OutAlpha = 1.0f;
+    BRDFData brdfData;
+    InitializeBRDFData(BaseColor, Metallic, Specular, Smoothness, OutAlpha, brdfData);
+    brdfData.grazingTerm = IsEye ? saturate(Smoothness + kDielectricSpec.x) : brdfData.grazingTerm;
+    brdfData.diffuse = IsEye ? BaseColor * kDielectricSpec.a : brdfData.diffuse;
+    brdfData.specular = IsEye ? BaseColor : brdfData.specular;
+    return brdfData;
+}
+
 ///////////////////////////////////////////////////////////////////////////////
 //                  Vertex and Fragment functions                            //
 ///////////////////////////////////////////////////////////////////////////////
@@ -79,9 +90,20 @@ void GakuLitPassFragment(
     
     half4 BaseMap = SAMPLE_TEXTURE2D(_BaseMap, sampler_BaseMap, input.UV.xy);
     half4 ShadeMap = SAMPLE_TEXTURE2D(_ShadeMap, sampler_ShadeMap, input.UV.xy);
+    half4 DefMap = SAMPLE_TEXTURE2D(_DefMap, sampler_DefMap, input.UV.xy).xyzw;
     float2 RampMapUV = float2(BaseLighting, 0);
     half4 RampMap = SAMPLE_TEXTURE2D(_RampMap, sampler_RampMap, RampMapUV);
-    outColor = RampMap;
+    
+    float DefDiffuse = DefMap.x;
+    float DefMetallic = DefMap.z;
+    float DefSmoothness = DefMap.y;
+    float DefSpecular = DefMap.w;
+
+    float DiffuseOffset = DefDiffuse * 2.0f - 1.0f;
+    float Smoothness = min(DefSmoothness, 1);
+    float Metallic = DefMetallic;
+	
+    float SpecularIntensity = min(DefSpecular, Shadow);
     
     const float ShadowIntensity = 1; // _MatCapParam.z?
     float3 RampedLighting = lerp(BaseMap.xyz, ShadeMap.xyz * _ShadeMultiplyColor, RampMap.w * ShadowIntensity);
@@ -95,6 +117,23 @@ void GakuLitPassFragment(
     RampedLighting = lerp(Luminance(RampedLighting), RampedLighting, SkinSaturation);
     RampedLighting *= _BaseColor;
     
-    outColor.rgb = RampedLighting;
+	BRDFData brdfData = G_InitialBRDFData(RampedLighting, Smoothness, Metallic, SpecularIntensity, false);
+    
+    float3 IndirectSpecular = 0;
+    float3 ReflectVector = reflect(-ViewDirection, NormalWS);
+
+    half NdotV = saturate(dot(NormalWS, ViewDirection));
+    float FresnelTerm = Pow4(1 - saturate(NdotV));
+    float3 SpecularColor =  EnvironmentBRDFSpecular(brdfData, FresnelTerm);
+    float3 SpecularTerm = DirectBRDFSpecular(brdfData, NormalWS, _MatCapMainLight, ViewDirection);
+    float3 Specular = SpecularColor * IndirectSpecular;
+    Specular += SpecularTerm * SpecularColor;
+    // Specular += MatCapReflection;
+    Specular *= SpecularIntensity;
+	// Specular = lerp(Specular, Specular * RampAddColor, RampAddMap.w);
+    
+    outColor.rgb = brdfData.diffuse;
+	outColor.rgb += Specular;
+    
     // outColor = color;
 }
