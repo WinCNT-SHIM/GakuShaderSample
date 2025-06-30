@@ -40,8 +40,8 @@ Shader "Gaku/Character/Default"
 		[Enum(UnityEngine.Rendering.CullMode)]_Cull ("__cull", Float) = 2
 		[Enum(UnityEngine.Rendering.BlendMode)]_SrcBlend ("__src", Float) = 1
 		[Enum(UnityEngine.Rendering.BlendMode)]_DstBlend ("__dst", Float) = 0
-		[Enum(UnityEngine.Rendering.BlendMode)]_SrcAlphaBlend ("__srcAlpha", Float) = 1
-		[Enum(UnityEngine.Rendering.BlendMode)]_DstAlphaBlend ("__dstAlpha", Float) = 0
+		[Enum(UnityEngine.Rendering.BlendMode)]_SrcBlendAlpha ("__srcAlpha", Float) = 1
+		[Enum(UnityEngine.Rendering.BlendMode)]_DstBlendAlpha ("__dstAlpha", Float) = 0
 		_ColorMask ("__colormask", Float) = 15
 		_ColorMask1 ("__colormask1", Float) = 15
 		_ZWrite ("__zw", Float) = 1
@@ -62,13 +62,38 @@ Shader "Gaku/Character/Default"
     }
     SubShader
     {
+        Tags
+        {
+            "RenderType" = "Opaque"
+            "RenderPipeline" = "UniversalPipeline"
+            "IgnoreProjector" = "True"
+        }
+        LOD 300
+    	
         Pass
         {
-            Tags { "RenderType"="Opaque" }
-            LOD 100
+        	Name "GakuForwardLit"
+            Tags
+            {
+                "LightMode" = "UniversalForward"
+            }
+            // -------------------------------------
+            // Render State Commands
+            Blend[_SrcBlend][_DstBlend], [_SrcBlendAlpha][_DstBlendAlpha]
+            ZWrite[_ZWrite]
+            Cull[_Cull]
+            // AlphaToMask[_AlphaToMask]
+            
+			Stencil
+			{
+				Ref [_StencilRef]
+				ReadMask [_StencilReadMask]
+				WriteMask [_StencilWriteMask]
+				Comp [_StencilComp]
+				Pass [_StencilPass]
+			}
             
             HLSLPROGRAM
-
             // -------------------------------------
             // Shader Stages
             #pragma vertex GakuLitPassVertex
@@ -79,9 +104,61 @@ Shader "Gaku/Character/Default"
             
             // -------------------------------------
             // Universal Pipeline keywords
+            #pragma multi_compile _ _MAIN_LIGHT_SHADOWS _MAIN_LIGHT_SHADOWS_CASCADE _MAIN_LIGHT_SHADOWS_SCREEN
+            #pragma multi_compile _ _ADDITIONAL_LIGHTS_VERTEX _ADDITIONAL_LIGHTS
+            
 			#include_with_pragmas "GakuLitInput.hlsl"
 			#include_with_pragmas "GakuLitForwardPass.hlsl"
             
+            ENDHLSL
+        }
+        
+        Pass
+        {
+            Name "ShadowCaster"
+            Tags
+            {
+                "LightMode" = "ShadowCaster"
+            }
+
+            // -------------------------------------
+            // Render State Commands
+            ZWrite On
+            ZTest LEqual
+            ColorMask 0
+            Cull[_Cull]
+
+            HLSLPROGRAM
+
+            // -------------------------------------
+            // Shader Stages
+            #pragma vertex ShadowPassVertex
+            #pragma fragment ShadowPassFragment
+
+            // -------------------------------------
+            // Material Keywords
+            #pragma shader_feature_local _ALPHATEST_ON
+            #pragma shader_feature_local_fragment _SMOOTHNESS_TEXTURE_ALBEDO_CHANNEL_A
+
+            //--------------------------------------
+            // GPU Instancing
+            #pragma multi_compile_instancing
+            #include_with_pragmas "Packages/com.unity.render-pipelines.universal/ShaderLibrary/DOTS.hlsl"
+
+            // -------------------------------------
+            // Universal Pipeline keywords
+
+            // -------------------------------------
+            // Unity defined keywords
+            #pragma multi_compile _ LOD_FADE_CROSSFADE
+
+            // This is used during shadow map generation to differentiate between directional and punctual light shadows, as they use different formulas to apply Normal Bias
+            #pragma multi_compile_vertex _ _CASTING_PUNCTUAL_LIGHT_SHADOW
+
+            // -------------------------------------
+            // Includes
+            #include "Packages/com.unity.render-pipelines.universal/Shaders/LitInput.hlsl"
+            #include "Packages/com.unity.render-pipelines.universal/Shaders/ShadowCasterPass.hlsl"
             ENDHLSL
         }
     }
