@@ -43,11 +43,27 @@ void Decode4BitFrom8Bit(float4 C, out float4 A, out float4 B)
     B = LowBit * k;
 }
 
+void Decode8BitTo4Bit(float4 color, out float4 highNibble, out float4 lowNibble)
+{
+    // 0~255 정수로 변환 (반올림)
+    uint4 c = (uint4)(color * 255.0f + 0.5f);
+
+    // 상위 4비트: 16으로 나눔 == 우측 시프트 4
+    uint4 High = c >> 4;
+    // 하위 4비트: 0xF(1111) 마스크
+    uint4 Low  = c & 0xF;
+
+    // 0~15 → 0~1 정규화
+    const float norm = 1.0f / 15.0f;
+    highNibble = (float4) High * norm;
+    lowNibble = (float4) Low  * norm;
+}
+
 GakuVertexColor DecodeVertexColor(float4 VertexColor)
 {
     GakuVertexColor OutColor;
     float4 LowBit, HighBit;
-    Decode4BitFrom8Bit(VertexColor, HighBit, LowBit);
+    Decode8BitTo4Bit(VertexColor, HighBit, LowBit);
     OutColor.OutLineColor = float4(HighBit.x, LowBit.x, HighBit.y, LowBit.w);
     OutColor.OutLineWidth = LowBit.z;
     OutColor.OutLineOffset = HighBit.z;
