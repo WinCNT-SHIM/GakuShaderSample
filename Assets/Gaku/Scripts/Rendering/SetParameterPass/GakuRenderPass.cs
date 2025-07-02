@@ -8,7 +8,7 @@ namespace Gaku
     {
         private GakuVolume gakuVolume;
         private Tonemapping tonemapping;
-        
+
         public GakuRenderPass()
         {
             profilingSampler = new ProfilingSampler(nameof(GakuRenderPass));
@@ -17,33 +17,93 @@ namespace Gaku
             srpInput |= ScriptableRenderPassInput.Color;
             ConfigureInput(srpInput);
         }
+
+        private static readonly int GlobalMainLightDirVSSid = Shader.PropertyToID("_GlobalMainLightDirVS");
+        private static readonly int EnableACESCounterSid = Shader.PropertyToID("_EnableACESCounter");
+        private static readonly int SkinSaturationSid = Shader.PropertyToID("_SkinSaturation");
         
-        private static readonly int SkinSaturation = Shader.PropertyToID("_SkinSaturation");
-        
+        private Texture cachedReflectionProbe;
+
+        public override void OnCameraSetup(CommandBuffer cmd, ref RenderingData renderingData)
+        {
+            var volumeStack = VolumeManager.instance.stack;
+            gakuVolume = volumeStack.GetComponent<GakuVolume>();
+            tonemapping = volumeStack.GetComponent<Tonemapping>();
+        }
+
         public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
         {
             var cmd = CommandBufferPool.Get();
             using (new ProfilingScope(cmd, profilingSampler))
             {
                 var camera = renderingData.cameraData.camera;
-                SetShaderParams(renderingData, cmd, camera);
-                
+                SetGlobalShaderParams(renderingData, cmd, camera);
+
                 if (gakuVolume.active)
-                    SetGlobalShaderParams(cmd, camera);
+                {
+                    SetGlobalVolumeParams(cmd, camera);
+                    SetSceneAmbientLighting();
+                }
             }
+
             context.ExecuteCommandBuffer(cmd);
             CommandBufferPool.Release(cmd);
         }
-        
-        private void SetShaderParams(RenderingData renderingData, CommandBuffer cmd, Camera camera)
+
+        private void SetGlobalShaderParams(RenderingData renderingData, CommandBuffer cmd, Camera camera)
         {
-            
+            cmd.SetGlobalFloat(EnableACESCounterSid,
+                renderingData.postProcessingEnabled && tonemapping && tonemapping.mode.value == TonemappingMode.ACES
+                    ? 1
+                    : 0);
+            var mainLightIndex = renderingData.lightData.mainLightIndex;
+            if (mainLightIndex >= 0)
+            {
+                var mainLight = renderingData.lightData.visibleLights[mainLightIndex];
+                var mainLightDirWS = mainLight.light.transform.forward;
+                var mainLightDirVS = camera.worldToCameraMatrix.MultiplyVector(mainLightDirWS);
+                cmd.SetGlobalVector(GlobalMainLightDirVSSid, -mainLightDirVS);
+            }
         }
-        
-        private void SetGlobalShaderParams(CommandBuffer cmd, Camera camera)
+
+        private void SetGlobalVolumeParams(CommandBuffer cmd, Camera camera)
         {
-            cmd.SetGlobalFloat(SkinSaturation, gakuVolume._SkinSaturation.value);
-            
+            cmd.SetGlobalFloat(SkinSaturationSid, gakuVolume._SkinSaturation.value);
+        }
+
+        private void SetSceneAmbientLighting()
+        {
+            if (gakuVolume._skyboxMaterial.value)
+            {
+                RenderSettings.ambientMode = AmbientMode.Skybox;
+                RenderSettings.skybox = gakuVolume._skyboxMaterial.value;
+                RenderSettings.ambientIntensity = gakuVolume._skyboxIntensity.value;
+            }
+
+            if (cachedReflectionProbe != gakuVolume._reflectionProbe.value)
+            {
+                if (gakuVolume._reflectionProbe.value)
+                {
+                    RenderSettings.defaultReflectionMode = DefaultReflectionMode.Custom;
+                    RenderSettings.customReflectionTexture = gakuVolume._reflectionProbe.value;
+                    cachedReflectionProbe = gakuVolume._reflectionProbe.value;
+                }
+                else
+                {
+                    RenderSettings.defaultReflectionMode = DefaultReflectionMode.Skybox;
+                    cachedReflectionProbe = null;
+                }
+            }
+
+            if (gakuVolume.SH2.overrideState)
+            {
+                RenderSettings.ambientProbe = gakuVolume.SH2.value;
+            }
+        }
+
+        public void Dispose()
+        {
+            cachedReflectionProbe = null;
         }
     }
 }

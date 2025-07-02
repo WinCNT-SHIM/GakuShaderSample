@@ -8,6 +8,20 @@ namespace Gaku
     [VolumeComponentMenu("GakuVolume")]
     public class GakuVolume : VolumeComponent
     {
+        public void SetSH2()
+        {
+            DynamicGI.UpdateEnvironment();
+            SH2.value = RenderSettings.ambientProbe;
+        }
+        
+        [Header("Skybox & ReflectionProbe")]
+        public MaterialParameter _skyboxMaterial = new(null);
+        public ClampedFloatParameter _skyboxIntensity = new(1f, 0f, 8f);
+        public CubemapParameter _reflectionProbe = new(null);
+        
+        [Header("Spherical Harmonics L2")]
+        public SH2Parameter SH2 = new(new SphericalHarmonicsL2());
+        
         [Header("Global Variables")]
         // var dir = -DirectionalLight.transform.forward;
         public FloatParameter _SkinSaturation = new FloatParameter(1.0f);
@@ -24,5 +38,13 @@ namespace Gaku
         // // public ColorParameter _EyeHightlightColor = new ColorParameter(Color.white, hdr: true, showAlpha: true, showEyeDropper: true);
         // // public FloatParameter _OutlineParam = new FloatParameter(0.2f);
         public Vector4Parameter _FadeParam = new Vector4Parameter(Vector4.zero);
+    }
+    
+    [Serializable]
+    public class SH2Parameter : VolumeParameter<SphericalHarmonicsL2>
+    {
+        public SH2Parameter(SphericalHarmonicsL2 value, bool overrideState = false) : base(value, overrideState)
+        {
+        }
     }
 }
