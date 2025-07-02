@@ -18,10 +18,24 @@ namespace Gaku
             ConfigureInput(srpInput);
         }
 
-        private static readonly int GlobalMainLightDirVSSid = Shader.PropertyToID("_GlobalMainLightDirVS");
+        private static readonly int GlobalLightingOverrideColorSid =
+            Shader.PropertyToID("_GlobalLightingOverrideColor");
+
+        private static readonly int GlobalLightingOverrideRatioSid =
+            Shader.PropertyToID("_GlobalLightingOverrideRatio");
+
+        private static readonly int GlobalLightingOverrideDirectionEnabledSid =
+            Shader.PropertyToID("_GlobalLightingOverrideDirectionEnabled");
+
+        private static readonly int GlobalLightingOverrideDirectionSid =
+            Shader.PropertyToID("_GlobalLightingOverrideDirection");
+
         private static readonly int EnableACESCounterSid = Shader.PropertyToID("_EnableACESCounter");
+
+        private static readonly int GlobalMainLightDirVSSid = Shader.PropertyToID("_GlobalMainLightDirVS");
         private static readonly int SkinSaturationSid = Shader.PropertyToID("_SkinSaturation");
-        
+
+        private Vector3 lightOriginDir = new(0, 0, -1);
         private Texture cachedReflectionProbe;
 
         public override void OnCameraSetup(CommandBuffer cmd, ref RenderingData renderingData)
@@ -69,6 +83,21 @@ namespace Gaku
         private void SetGlobalVolumeParams(CommandBuffer cmd, Camera camera)
         {
             cmd.SetGlobalFloat(SkinSaturationSid, gakuVolume._SkinSaturation.value);
+
+            cmd.SetGlobalColor(GlobalLightingOverrideColorSid,
+                gakuVolume._GlobalLightingOverrideColor.value);
+            cmd.SetGlobalFloat(GlobalLightingOverrideRatioSid,
+                gakuVolume._GlobalLightingOverrideRatio.value);
+            if (gakuVolume._GlobalLightingOverrideDirection.overrideState)
+            {
+                cmd.SetGlobalFloat(GlobalLightingOverrideDirectionEnabledSid, 1f);
+                cmd.SetGlobalVector(GlobalLightingOverrideDirectionSid,
+                    Quaternion.Euler(gakuVolume._GlobalLightingOverrideDirection.value) * lightOriginDir);
+            }
+            else
+            {
+                cmd.SetGlobalFloat(GlobalLightingOverrideDirectionEnabledSid, 0f);
+            }
         }
 
         private void SetSceneAmbientLighting()

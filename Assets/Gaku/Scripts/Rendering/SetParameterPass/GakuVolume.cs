@@ -1,6 +1,7 @@
 using System;
 using UnityEngine;
 using UnityEngine.Rendering;
+using UnityEngine.Serialization;
 
 namespace Gaku
 {
@@ -23,6 +24,10 @@ namespace Gaku
         public SH2Parameter SH2 = new(new SphericalHarmonicsL2());
         
         [Header("Global Variables")]
+        public ColorParameter _GlobalLightingOverrideColor = new(Color.white, true, true, true);
+        public ClampedFloatParameter _GlobalLightingOverrideRatio = new(0f, 0f, 1f);
+        public Vector3Parameter _GlobalLightingOverrideDirection = new(new Vector3(130, 40, 0));
+        
         // var dir = -DirectionalLight.transform.forward;
         public FloatParameter _SkinSaturation = new FloatParameter(1.0f);
         // public ColorParameter _MatCapLightColor = DirectionalLight.color;
