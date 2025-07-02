@@ -59,6 +59,9 @@ Shader "Gaku/Character/Default"
 		[PerRendererData] _MultiplyColor ("Multiply Color", Color) = (1,1,1,1)
 		[PerRendererData] _MultiplyOutlineColor ("Outline Multiply Color", Color) = (1,1,1,1)
 		[PerRendererData] _UseLastFramePositions ("Use Last Frame Positions", Float) = 0
+    	
+		[HideInInspector] _MatCapMainLight ("MatCap Main Light", Vector) = (0, 0.7071, 0.7071, 0)
+		[HideInInspector] _ShadeMultiplyColor ("Shade Multiply Color", Color) = (0,0,0,0)
     }
     SubShader
     {

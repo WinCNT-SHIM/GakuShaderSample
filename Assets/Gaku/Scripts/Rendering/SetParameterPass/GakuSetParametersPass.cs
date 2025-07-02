@@ -4,14 +4,14 @@ using UnityEngine.Rendering.Universal;
 
 namespace Gaku
 {
-    public class GakuRenderPass : ScriptableRenderPass
+    public class GakuSetParametersPass : ScriptableRenderPass
     {
         private GakuVolume gakuVolume;
         private Tonemapping tonemapping;
 
-        public GakuRenderPass()
+        public GakuSetParametersPass()
         {
-            profilingSampler = new ProfilingSampler(nameof(GakuRenderPass));
+            profilingSampler = new ProfilingSampler(nameof(GakuSetParametersPass));
             var srpInput = ScriptableRenderPassInput.None;
             srpInput |= ScriptableRenderPassInput.Depth;
             srpInput |= ScriptableRenderPassInput.Color;

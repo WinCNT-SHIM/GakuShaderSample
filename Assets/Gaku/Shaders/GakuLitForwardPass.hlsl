@@ -182,7 +182,7 @@ void GakuLitPassFragment(
     half4 RampMap = SAMPLE_TEXTURE2D(_RampMap, sampler_RampMap, RampMapUV);
     
     float SpecularIntensity = min(DefSpecular, Shadow);
-    const float ShadowIntensity = 1; // _MatCapParam.z?
+    const float ShadowIntensity = 0.55; // _MatCapParam.z? _MatCapParam (0,0,0.5490196,0)
     float3 RampedLighting = lerp(BaseMap.xyz, ShadeMap.xyz * _ShadeMultiplyColor, RampMap.w * ShadowIntensity);
     float3 SkinRampedLighting =	lerp(RampMap, RampMap.xyz * _ShadeMultiplyColor, RampMap.w);
     SkinRampedLighting = lerp(1, SkinRampedLighting, ShadowIntensity);

@@ -148,7 +148,8 @@ namespace Gaku
             var right = headFace.right;
             var up = headFace.up;
             var forward = headFace.forward;
-            return direction switch {
+            return direction switch
+            {
                 TransformDirection.X => right,
                 TransformDirection.Y => up,
                 TransformDirection.Z => forward,
