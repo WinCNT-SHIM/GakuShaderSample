@@ -145,6 +145,54 @@ MonoBehaviour:
   m_Name: GakuVolume
   m_EditorClassIdentifier: 
   active: 1
+  _skyboxMaterial:
+    m_OverrideState: 0
+    m_Value: {fileID: 0}
+  _skyboxIntensity:
+    m_OverrideState: 0
+    m_Value: 1
+  _reflectionProbe:
+    m_OverrideState: 0
+    m_Value: {fileID: 0}
+  SH2:
+    m_OverrideState: 1
+    m_Value:
+      'sh[ 0]': 0
+      'sh[ 1]': 0
+      'sh[ 2]': 0
+      'sh[ 3]': 0
+      'sh[ 4]': 0
+      'sh[ 5]': 0
+      'sh[ 6]': 0
+      'sh[ 7]': 0
+      'sh[ 8]': 0
+      'sh[ 9]': 0
+      'sh[10]': 0
+      'sh[11]': 0
+      'sh[12]': 0
+      'sh[13]': 0
+      'sh[14]': 0
+      'sh[15]': 0
+      'sh[16]': 0
+      'sh[17]': 0
+      'sh[18]': 0
+      'sh[19]': 0
+      'sh[20]': 0
+      'sh[21]': 0
+      'sh[22]': 0
+      'sh[23]': 0
+      'sh[24]': 0
+      'sh[25]': 0
+      'sh[26]': 0
+  _GlobalLightingOverrideColor:
+    m_OverrideState: 0
+    m_Value: {r: 1, g: 1, b: 1, a: 1}
+  _GlobalLightingOverrideRatio:
+    m_OverrideState: 0
+    m_Value: 0
+  _GlobalLightingOverrideDirection:
+    m_OverrideState: 0
+    m_Value: {x: 130, y: 40, z: 0}
   _SkinSaturation:
     m_OverrideState: 0
     m_Value: 1
