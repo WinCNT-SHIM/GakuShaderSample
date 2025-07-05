@@ -143,7 +143,6 @@ half4 GakuLitPassFragment(
     // NoL = DisableMatCap ? NoL : MatCapNoL;
     
     float Shadow = MainLightRealtimeShadow(input.ShadowCoord);
-    return Shadow;
     
     float ShadowFadeOut = dot(-ViewDirection, -ViewDirection);
     ShadowFadeOut = saturate(ShadowFadeOut * _MainLightShadowParams.z + _MainLightShadowParams.w);
