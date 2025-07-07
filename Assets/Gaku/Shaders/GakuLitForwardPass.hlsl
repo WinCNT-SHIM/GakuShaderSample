@@ -34,15 +34,6 @@ struct GakuVertexColor
     float RimMask;
 };
 
-void Decode4BitFrom8Bit(float4 C, out float4 A, out float4 B)
-{
-    const float k = 1.0f / 15.0f;
-    float4 HighBit = floor(C * 15.9375f + 0.03125f);
-    float4 LowBit = C * 255.0f - HighBit * 16.0f;
-    A = HighBit * k;
-    B = LowBit * k;
-}
-
 void Decode8BitTo4Bit(float4 color, out float4 highNibble, out float4 lowNibble)
 {
     // 0~255 정수로 변환 (반올림)
@@ -117,19 +108,21 @@ Varyings GakuLitPassVertex(Attributes input)
     return output;
 }
 
-void GakuLitPassFragment(
+// void GakuLitPassFragment(
+//     Varyings input
+//     , bool IsFront : SV_IsFrontFace
+//     , out half4 outColor : SV_Target0
+// )
+half4 GakuLitPassFragment(
     Varyings input
     , bool IsFront : SV_IsFrontFace
-    , out half4 outColor : SV_Target0
-)
+) : SV_Target0
 {
     UNITY_SETUP_INSTANCE_ID(input);
     UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
     
     // SurfaceData surfaceData;
     // InitializeStandardLitSurfaceData(input.uv, surfaceData);
-    
-    half4 color = half4(1,1,1,1);
     
     GakuVertexColor VertexColor;
     VertexColor.OutLineColor = input.Color1;
@@ -224,8 +217,13 @@ void GakuLitPassFragment(
     float3 SH = SampleSH(NormalWS);
     float3 SkyLight = max(SH, 0);
     
-    outColor.rgb = brdfData.diffuse;
-    outColor.rgb += Specular;
+    half4 color = half4(1,1,1,1);
+    color.rgb = brdfData.diffuse;
+    color.rgb += Specular;
+    return color;
+    
+    // outColor.rgb = brdfData.diffuse;
+    // outColor.rgb += Specular;
     // outColor.rgb += SkyLight;
     // outColor.rgb += RampMap.w * _ShadeAdditiveColor;
     

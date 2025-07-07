@@ -19,11 +19,13 @@ namespace Gaku
         
         [SerializeField] private Transform pelvis;
         [SerializeField] private Transform headFace;
+        public Transform HeadFace => headFace;
         
         [SerializeField] private TransformDirection faceForwardDirection = TransformDirection.negX;
         [SerializeField] private TransformDirection faceUpDirection = TransformDirection.Y;
         [SerializeField] private TransformDirection faceRightDirection = TransformDirection.Z;
         [SerializeField] [Range(0f, 0.5f)] private float headOffset = 0.2f;
+        public float HeadOffset => headOffset;
         
         [SerializeField][ColorUsage(true, false)] private Color shadeMultiplyColor = Color.white;
         [SerializeField][ColorUsage(true, true)] private Color eyeHightlightColor = Color.white;
@@ -55,6 +57,15 @@ namespace Gaku
         
         private void OnDisable() => RemoveCharacterListToRendererFeature();
         
+        private void OnDestroy()
+        {
+            if (!Application.isPlaying) return;
+            foreach (var material in gakuRenderers.SelectMany(r => r.materials))
+                Destroy(material);
+        }
+        
+        public Vector3 GetPelvisPosition() => pelvis ? pelvis.position : transform.position + Vector3.up * 0.75f;
+
         private void LateUpdate()
         {
             var anyRendererIsNull = false;
@@ -116,9 +127,9 @@ namespace Gaku
         
         private void RemoveCharacterListToRendererFeature()
         {
-            if (!Application.isPlaying) return;
-            foreach (var material in gakuRenderers.SelectMany(r => r.materials))
-                Destroy(material);
+            var renderFeature = GakuRendererFeature.Instance;
+            if (!renderFeature) return;
+            renderFeature.RemoveCharacterFromList(this);
         }
         
         private void UpdateMaterial(Material material)
