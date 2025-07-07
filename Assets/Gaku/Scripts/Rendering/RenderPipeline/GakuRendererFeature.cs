@@ -12,7 +12,7 @@ namespace Gaku
         private GakuSetParametersPass gakuSetParametersPass;
         private GakuSelfShadowPass gakuSelfShadowPass;
         
-        public List<GakuMaterialController> charaMaterialList { get; set; }
+        public List<GakuMaterialController> charaMaterialList = new();
         public GakuSelfShadowPass.SelfShadowSettings selfShadowSettings = new();
         
         public GakuRendererFeature()
