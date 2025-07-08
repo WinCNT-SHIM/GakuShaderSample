@@ -1,4 +1,7 @@
+#pragma once
+
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Lighting.hlsl"
+#include "GakuShadows.hlsl"
 
 struct Attributes
 {

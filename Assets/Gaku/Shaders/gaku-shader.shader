@@ -115,7 +115,7 @@ Shader "Gaku/Character/Default"
             
             ENDHLSL
         }
-        
+        // Shadow Caster
         Pass
         {
             Name "ShadowCaster"
@@ -162,6 +162,71 @@ Shader "Gaku/Character/Default"
             // Includes
             #include "Packages/com.unity.render-pipelines.universal/Shaders/LitInput.hlsl"
             #include "Packages/com.unity.render-pipelines.universal/Shaders/ShadowCasterPass.hlsl"
+            ENDHLSL
+        }
+        // Self Shadow
+        Pass
+        {
+            Name "GakuSelfShadowCaster"
+            Tags
+            {
+                "LightMode" = "GakuSelfShadowCaster"
+            }
+
+            ZWrite On
+            ZTest LEqual
+            ColorMask 0
+            Cull Back
+
+            HLSLPROGRAM
+            #pragma vertex vert
+            #pragma fragment frag
+            #pragma multi_compile_instancing
+            #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Lighting.hlsl"
+			#include_with_pragmas "GakuLitInput.hlsl"
+
+            float3 _LightDirection;
+
+            struct VertexInput
+            {
+                float4 positionOS : POSITION;
+                float3 normalOS : NORMAL;
+                UNITY_VERTEX_INPUT_INSTANCE_ID
+            };
+
+            struct VertexOutput
+            {
+                float4 positionCS : SV_POSITION;
+            };
+
+
+            VertexOutput vert(VertexInput input)
+            {
+                UNITY_SETUP_INSTANCE_ID(input);
+                VertexOutput o;
+                //ShadowCasterPass.hlslより
+                float3 positionWS = TransformObjectToWorld(input.positionOS.xyz);
+                float3 normalWS = TransformObjectToWorldNormal(input.normalOS);
+                float4 positionCS = TransformWorldToHClip(positionWS);
+
+                #if UNITY_REVERSED_Z
+                positionCS.z = min(positionCS.z, positionCS.w * UNITY_NEAR_CLIP_VALUE);
+                #else
+                positionCS.z = max(positionCS.z, positionCS.w * UNITY_NEAR_CLIP_VALUE);
+                #endif
+
+                o.positionCS = positionCS;
+
+                return o;
+            }
+
+            void frag(VertexOutput input)
+            {
+                half2 screenPos = input.positionCS.xy / _ScaledScreenParams.xy;
+                // TODO: 디더링은 나중에
+                // float cutoff = lerp(0.5, Unity_Dither(screenPos), _DitherFade);
+                // clip(1 - _DitherFade - cutoff);
+            }
             ENDHLSL
         }
     }

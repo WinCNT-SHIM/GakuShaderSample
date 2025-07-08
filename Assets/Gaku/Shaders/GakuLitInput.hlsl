@@ -58,15 +58,29 @@ float4 _ReflectionSphereMap_HDR;
 float4 _OutlineParam;
 CBUFFER_END
 
-Texture2D _BaseMap;                 SAMPLER(sampler_BaseMap);
-Texture2D _ShadeMap;                SAMPLER(sampler_ShadeMap);
-Texture2D _RampMap;                 SAMPLER(sampler_RampMap);
-Texture2D _HighlightMap;            SAMPLER(sampler_HighlightMap);
-Texture2D _DefMap;                  SAMPLER(sampler_DefMap);
-Texture2D _LayerMap;                SAMPLER(sampler_LayerMap);
-Texture2D _BumpMap;                 SAMPLER(sampler_BumpMap);
-Texture2D _AnisotropicMap;          SAMPLER(sampler_AnisotropicMap);
-Texture2D _RampAddMap;              SAMPLER(sampler_RampAddMap);
-Texture2D _EmissionMap;             SAMPLER(sampler_EmissionMap);
-Texture2D _ReflectionSphereMap;     SAMPLER(sampler_ReflectionSphereMap);
-TextureCube _VLSpecCube;            SAMPLER(sampler_VLSpecCube);
+TEXTURE2D(_BaseMap);                 SAMPLER(sampler_BaseMap);
+TEXTURE2D(_ShadeMap);                SAMPLER(sampler_ShadeMap);
+TEXTURE2D(_RampMap);                 SAMPLER(sampler_RampMap);
+TEXTURE2D(_HighlightMap);            SAMPLER(sampler_HighlightMap);
+TEXTURE2D(_DefMap);                  SAMPLER(sampler_DefMap);
+TEXTURE2D(_LayerMap);                SAMPLER(sampler_LayerMap);
+TEXTURE2D(_BumpMap);                 SAMPLER(sampler_BumpMap);
+TEXTURE2D(_AnisotropicMap);          SAMPLER(sampler_AnisotropicMap);
+TEXTURE2D(_RampAddMap);              SAMPLER(sampler_RampAddMap);
+TEXTURE2D(_EmissionMap);             SAMPLER(sampler_EmissionMap);
+TEXTURE2D(_ReflectionSphereMap);     SAMPLER(sampler_ReflectionSphereMap);
+TEXTURECUBE(_VLSpecCube);            SAMPLER(sampler_VLSpecCube);
+
+//////////////////////////////////////////////////
+/// 셀프 쉐도우용
+//////////////////////////////////////////////////
+// 글로벌 텍스처
+TEXTURE2D(_GakuSelfShadowMapRT);    SAMPLER_CMP(sampler_GakuSelfShadowMapRT);
+// 글로벌 변수
+float _GakuSelfShadowRange;
+float4x4 _GakuSelfShadowWorldToClip;
+float4 _GakuSelfShadowParam;
+float _GakuGlobalSelfShadowDepthBias;
+half3 _GakuSelfShadowLightDirection;
+half _GakuSelfShadowUseNdotLFix;
+// float _SelfShadowMappingPosOffset;
