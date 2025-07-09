@@ -135,7 +135,7 @@ half4 GakuLitPassFragment(
     VertexColor.RimMask = input.Color2.w;
     
     float3 NormalWS = normalize(input.NormalWS);
-    NormalWS = IsFront ? NormalWS : NormalWS * -1.0f;
+    NormalWS = IsFront ? NormalWS : -NormalWS;
     
     half3 ViewDirection = GetWorldSpaceNormalizeViewDir(input.PositionWS);
     
@@ -145,12 +145,13 @@ half4 GakuLitPassFragment(
     // bool DisableMatCap = _MatCapMainLight.w > 0.5f;
     // NoL = DisableMatCap ? NoL : MatCapNoL;
     
-    float Shadow = MainLightRealtimeShadow(input.ShadowCoord);
+    // float Shadow = MainLightRealtimeShadow(input.ShadowCoord);
+    float Shadow = GetSelfShadow(input.PositionWS, NormalWS);
     
     float ShadowFadeOut = dot(-ViewDirection, -ViewDirection);
     ShadowFadeOut = saturate(ShadowFadeOut * _MainLightShadowParams.z + _MainLightShadowParams.w);
     ShadowFadeOut *= ShadowFadeOut;
-    Shadow = lerp(Shadow, 1, ShadowFadeOut);
+    // Shadow = lerp(Shadow, 1, ShadowFadeOut);
     Shadow = lerp(1.0f, Shadow, _MainLightShadowParams.x);
     Shadow = saturate(Shadow * ((4.0f * Shadow - 6) * Shadow + 3.0f));
     

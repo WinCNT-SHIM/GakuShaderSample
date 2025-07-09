@@ -13,6 +13,8 @@ MonoBehaviour:
   m_Name: GakuRendererFeature
   m_EditorClassIdentifier: 
   m_Active: 1
+  charaMaterialList:
+  - {fileID: 0}
   selfShadowSettings:
     enableSelfShadowPass: 1
     useMainLightForSelfShadowDir: 0
@@ -21,7 +23,7 @@ MonoBehaviour:
     shadowMapSize: 4096
     shadowRange: 10
     depthBias: 1
-    useNdotLFix: 1
+    useNdotLFix: 0
 --- !u!114 &11400000
 MonoBehaviour:
   m_ObjectHideFlags: 0

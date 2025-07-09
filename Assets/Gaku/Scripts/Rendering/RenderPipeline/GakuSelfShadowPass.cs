@@ -14,7 +14,7 @@ namespace Gaku
         public enum ShadowMapSize
         {
             Low = 512,
-            Mid = 1024,
+            Middle = 1024,
             High = 2048,
             VeryHigh = 4096,
         };
@@ -63,7 +63,7 @@ namespace Gaku
             var shadowMapSize = settings.shadowMapSize;
 
             //////////////////////////////////////////////////
-            // :TODO 쉐도우 품질 설정에 의한 셀프 쉐도우 품질 변경은 일단
+            // :TODO 쉐도우 품질 설정에 의한 셀프 쉐도우 품질 변경은 나중에!
             //////////////////////////////////////////////////
 
             var renderTextureDescriptor = new RenderTextureDescriptor(
