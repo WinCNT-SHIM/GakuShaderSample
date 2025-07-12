@@ -66,7 +66,7 @@ GakuVertexColor DecodeVertexColor(float4 VertexColor)
     return OutColor;
 }
 
-BRDFData G_InitialBRDFData(float3 BaseColor, float Smoothness, float Metallic, float Specular, bool IsEye)
+BRDFData InitializeBRDFData(float3 BaseColor, float Smoothness, float Metallic, float Specular, bool IsEye)
 {
     float OutAlpha = 1.0f;
     BRDFData brdfData;
@@ -203,7 +203,7 @@ half4 GakuLitPassFragment(
     RampedLighting = lerp(RampedLighting, SkinRampedLighting, ShadeMap.w);
     RampedLighting *= _BaseColor;
     
-	BRDFData brdfData = G_InitialBRDFData(RampedLighting, Smoothness, Metallic, SpecularIntensity, false);
+	BRDFData brdfData = InitializeBRDFData(RampedLighting, Smoothness, Metallic, SpecularIntensity, false);
     
     float3 IndirectSpecular = 0;
     float3 ReflectVector = reflect(-ViewDirection, NormalWS);

@@ -18,7 +18,7 @@ Shader "Gaku/Character/Default"
 		_BumpMap ("Normal", 2D) = "bump" { }
 		_AnisotropicMap ("Anisotropic Tangent(RG) AnisoMask(B)", 2D) = "black" { }
 		_AnisotropicScale ("Anisotropic Scale", Range(-0.95, 0.95)) = 1
-		[Toggle(_RAMPADD_ON)]_EnableRampAddMap ("Use RampAddMap", Float) = 0
+		[Toggle(_RAMPADD_ON)] _EnableRampAddMap ("Use RampAddMap", Float) = 0
 		_RampAddMap ("RampAdd (RGB)", 2D) = "white" { }
 		[HDR] _RampAddColor ("RampAdd Color", Color) = (1,1,1,1)
 		[HDR] _RimColor ("Rim Color", Color) = (0,0,0,0)
