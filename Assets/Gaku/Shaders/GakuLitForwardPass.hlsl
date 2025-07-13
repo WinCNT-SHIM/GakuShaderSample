@@ -66,7 +66,7 @@ GakuVertexColor DecodeVertexColor(float4 VertexColor)
     return OutColor;
 }
 
-BRDFData InitializeBRDFData(float3 BaseColor, float Smoothness, float Metallic, float Specular, bool IsEye)
+BRDFData InitializeGakuBRDFData(float3 BaseColor, float Smoothness, float Metallic, float Specular, bool IsEye)
 {
     float OutAlpha = 1.0f;
     BRDFData brdfData;
@@ -133,6 +133,12 @@ half4 GakuLitPassFragment(
     VertexColor.OutLineOffset = input.Color2.y;
     VertexColor.RampAddID = input.Color2.z;
     VertexColor.RimMask = input.Color2.w;
+
+    bool IsFace = _ShaderType == 9;
+    bool IsHair = _ShaderType == 8;
+    bool IsEye = _ShaderType == 4;
+    bool IsEyeHightLight = _ShaderType == 5;
+    bool IsEyeBrow = _ShaderType == 6;
     
     float3 NormalWS = normalize(input.NormalWS);
     NormalWS = IsFront ? NormalWS : -NormalWS;
@@ -157,8 +163,11 @@ half4 GakuLitPassFragment(
     
     half4 BaseMap = SAMPLE_TEXTURE2D(_BaseMap, sampler_BaseMap, input.UV.xy);
     half4 ShadeMap = SAMPLE_TEXTURE2D(_ShadeMap, sampler_ShadeMap, input.UV.xy);
-    half4 DefMap = SAMPLE_TEXTURE2D(_DefMap, sampler_DefMap, input.UV.xy).xyzw;
     
+    half4 DefMap = _DefValue;
+    #if !defined(_DEFMAP_OFF)
+    DefMap = SAMPLE_TEXTURE2D(_DefMap, sampler_DefMap, input.UV.xy).xyzw;
+    #endif
     float DefDiffuse = DefMap.x;
     float DefMetallic = DefMap.z;
     float DefSmoothness = DefMap.y;
@@ -176,7 +185,7 @@ half4 GakuLitPassFragment(
     
     float4 RampAddMap = 0;
     float3 RampAddColor = 0;
-    // #ifdef _RAMPADD_ON
+    #if defined(_RAMPADD_ON)
     float2 RampAddMapUV = float2(saturate(DiffuseOffset + NormalMatS.z), VertexColor.RampAddID);
     RampAddMap = SAMPLE_TEXTURE2D(_RampAddMap, sampler_RampAddMap, RampAddMapUV);
     RampAddColor = RampAddMap.xyz * _RampAddColor.xyz;
@@ -184,7 +193,7 @@ half4 GakuLitPassFragment(
     float3 DiffuseRampAddColor = lerp(RampAddColor, 0, RampAddMap.a);
     BaseMap.xyz += DiffuseRampAddColor;
     ShadeMap.xyz += DiffuseRampAddColor;
-    // #endif
+    #endif
     
     float BaseLighting = NoL * 0.5f + 0.5f;
     // BaseLighting = saturate(BaseLighting + (DiffuseOffset - _MatCapParam.x) * 0.5f);
@@ -203,10 +212,31 @@ half4 GakuLitPassFragment(
     RampedLighting = lerp(RampedLighting, SkinRampedLighting, ShadeMap.w);
     RampedLighting *= _BaseColor;
     
-	BRDFData brdfData = InitializeBRDFData(RampedLighting, Smoothness, Metallic, SpecularIntensity, false);
+	BRDFData brdfData = InitializeGakuBRDFData(RampedLighting, Smoothness, Metallic, SpecularIntensity, IsEye);
     
     float3 IndirectSpecular = 0;
     float3 ReflectVector = reflect(-ViewDirection, NormalWS);
+    
+    #if defined(_USE_EYE_REFLECTION_TEXTURE)
+    float ReflectionTextureMip = PerceptualRoughnessToMipmapLevel(brdfData.perceptualRoughness);
+    float3 VLSpecCube = SAMPLE_TEXTURECUBE_LOD(_VLSpecCube, sampler_VLSpecCube, ReflectVector, ReflectionTextureMip);
+    VLSpecCube *= _VLEyeSpecColor;
+    IndirectSpecular = VLSpecCube;
+    #endif
+
+    float3 MatCapReflection = 0.0f;
+    #if defined(_USE_REFLECTION_SPHERE)
+    float2 ReflectionSphereMapUV = NormalMatS.xy * 0.5 + 0.5;
+    float4 ReflectionSphereMap = SAMPLE_TEXTURE2D(_ReflectionSphereMap, sampler_ReflectionSphereMap, ReflectionSphereMapUV);
+    
+    float ReflectionSphereIntensity = lerp(1, ReflectionSphereMap.a, _ReflectionSphereMap_HDR.w);
+    ReflectionSphereIntensity = max(ReflectionSphereIntensity, 0);
+    ReflectionSphereIntensity = pow(ReflectionSphereIntensity, _ReflectionSphereMap_HDR.y);
+    ReflectionSphereIntensity *= _ReflectionSphereMap_HDR.x;
+    
+    ReflectionSphereMap.xyz = ReflectionSphereMap.xyz * ReflectionSphereIntensity;
+    MatCapReflection = ReflectionSphereMap.xyz;
+    #endif
 
     half NdotV = saturate(dot(NormalWS, ViewDirection));
     float FresnelTerm = Pow4(1 - saturate(NdotV));
@@ -214,7 +244,7 @@ half4 GakuLitPassFragment(
     float3 SpecularTerm = DirectBRDFSpecular(brdfData, NormalWS, _MatCapMainLight, ViewDirection);
     float3 Specular = SpecularColor * IndirectSpecular;
     Specular += SpecularTerm * SpecularColor;
-    // Specular += MatCapReflection;
+    Specular += MatCapReflection;
     Specular *= SpecularIntensity;
 	// Specular = lerp(Specular, Specular * RampAddColor, RampAddMap.w);
 
@@ -224,6 +254,15 @@ half4 GakuLitPassFragment(
     half4 color = half4(1,1,1,1);
     color.rgb = brdfData.diffuse;
     color.rgb += Specular;
+
+    float alpha = BaseMap.a * _MultiplyColor.a;
+    #if defined(_ALPHATEST_ON)
+    clip(alpha - _ClipValue);
+    #endif
+    #ifdef _ALPHAPREMULTIPLY_ON
+    color *= alpha;
+    #endif
+    
     return color;
     
     // outColor.rgb = brdfData.diffuse;

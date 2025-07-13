@@ -37,25 +37,25 @@ Shader "Gaku/Character/Default"
 		_ShaderType ("Shader Type", Float) = 0
 		[Toggle(_ALPHATEST_ON)] _AlphaTest("AlphaTest", Float) = 0.0
 		_ClipValue ("Clip Value", Range(0.0, 1.0)) = 0.33
-		[Enum(UnityEngine.Rendering.CullMode)]_Cull ("__cull", Float) = 2
-		[Enum(UnityEngine.Rendering.BlendMode)]_SrcBlend ("__src", Float) = 1
-		[Enum(UnityEngine.Rendering.BlendMode)]_DstBlend ("__dst", Float) = 0
-		[Enum(UnityEngine.Rendering.BlendMode)]_SrcBlendAlpha ("__srcAlpha", Float) = 1
-		[Enum(UnityEngine.Rendering.BlendMode)]_DstBlendAlpha ("__dstAlpha", Float) = 0
+		[Enum(UnityEngine.Rendering.CullMode)] _Cull ("__cull", Float) = 2
+		[Enum(UnityEngine.Rendering.BlendMode)] _SrcBlend ("__src", Float) = 1
+		[Enum(UnityEngine.Rendering.BlendMode)] _DstBlend ("__dst", Float) = 0
+		[Enum(UnityEngine.Rendering.BlendMode)] _SrcBlendAlpha ("__srcAlpha", Float) = 1
+		[Enum(UnityEngine.Rendering.BlendMode)] _DstBlendAlpha ("__dstAlpha", Float) = 0
 		_ColorMask ("__colormask", Float) = 15
 		_ColorMask1 ("__colormask1", Float) = 15
-		_ZWrite ("__zw", Float) = 1
+		[Enum(UnityEngine.Rendering.CompareFunction)] _ZWrite ("__zw", Float) = 1
 		[Toggle(_ENALBEHAIRCOVER_ON)] _EnalbeHairCover("EnalbeHairCover", Float) = 0.0
 		_StencilRef ("__stencilRef", Float) = 64
 		_StencilReadMask ("__stencilRead", Float) = 108
 		_StencilWriteMask ("__stencilWrite", Float) = 108
-		[Enum(UnityEngine.Rendering.CompareFunction)]_StencilComp ("__stencilComp", Float) = 8
-		[Enum(UnityEngine.Rendering.StencilOp)]_StencilPass ("__stencilPass", Float) = 2
+		[Enum(UnityEngine.Rendering.CompareFunction)] _StencilComp ("__stencilComp", Float) = 8
+		[Enum(UnityEngine.Rendering.StencilOp)] _StencilPass ("__stencilPass", Float) = 2
 		[PerRendererData] _ActorIndex ("Actor Index", Float) = 15
 		// [PerRendererData] _LayerWeight ("Layer Weight", Float) = 0
 		_LayerWeight ("Layer Weight", Float) = 0
-		[PerRendererData]_HeadDirection ("Direction", Vector) = (0,0,1,1)
-		[PerRendererData]_HeadUpDirection ("Up Direction", Vector) = (0,1,0,1)
+		[PerRendererData] _HeadDirection ("Direction", Vector) = (0,0,1,1)
+		[PerRendererData] _HeadUpDirection ("Up Direction", Vector) = (0,1,0,1)
 		[PerRendererData] _MultiplyColor ("Multiply Color", Color) = (1,1,1,1)
 		[PerRendererData] _MultiplyOutlineColor ("Outline Multiply Color", Color) = (1,1,1,1)
 		[PerRendererData] _UseLastFramePositions ("Use Last Frame Positions", Float) = 0
@@ -82,9 +82,9 @@ Shader "Gaku/Character/Default"
             }
             // -------------------------------------
             // Render State Commands
-            Blend[_SrcBlend][_DstBlend], [_SrcBlendAlpha][_DstBlendAlpha]
-            ZWrite[_ZWrite]
-            Cull[_Cull]
+            Blend [_SrcBlend][_DstBlend], [_SrcBlendAlpha][_DstBlendAlpha]
+            ZWrite [_ZWrite]
+            Cull [_Cull]
             // AlphaToMask[_AlphaToMask]
             
 			Stencil
@@ -104,6 +104,7 @@ Shader "Gaku/Character/Default"
 			
             // -------------------------------------
             // Material Keywords
+            #pragma shader_feature_local _ALPHATEST_ON
             
             // -------------------------------------
             // Universal Pipeline keywords
@@ -120,6 +121,14 @@ Shader "Gaku/Character/Default"
             // #pragma multi_compile_fragment _ _LIGHT_COOKIES
             // #pragma multi_compile _ _LIGHT_LAYERS
             // #pragma multi_compile _ _CLUSTER_LIGHT_LOOP
+
+            // -------------------------------------
+            // Gaku keywords
+            #pragma shader_feature_local _ _RAMPADD_ON
+            #pragma shader_feature_local _ _DEFMAP_OFF
+			#pragma shader_feature_local _ _ALPHAPREMULTIPLY_ON
+			#pragma shader_feature_local _ _USE_REFLECTION_TEXTURE _USE_EYE_REFLECTION_TEXTURE
+			#pragma shader_feature_local _ _USE_REFLECTION_SPHERE
             
 			#include_with_pragmas "GakuLitInput.hlsl"
 			#include_with_pragmas "GakuLitForwardPass.hlsl"
