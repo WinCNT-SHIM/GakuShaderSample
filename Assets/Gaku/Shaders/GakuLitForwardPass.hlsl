@@ -153,7 +153,6 @@ half4 GakuLitPassFragment(
     
     // float Shadow = MainLightRealtimeShadow(input.ShadowCoord);
     float Shadow = GetSelfShadow(input.PositionWS, NormalWS);
-    
     float ShadowFadeOut = dot(-ViewDirection, -ViewDirection);
     ShadowFadeOut = saturate(ShadowFadeOut * _MainLightShadowParams.z + _MainLightShadowParams.w);
     ShadowFadeOut *= ShadowFadeOut;
@@ -172,16 +171,44 @@ half4 GakuLitPassFragment(
     float DefMetallic = DefMap.z;
     float DefSmoothness = DefMap.y;
     float DefSpecular = DefMap.w;
-
-    float DiffuseOffset = DefDiffuse * 2.0f - 1.0f;
-    float Smoothness = min(DefSmoothness, 1);
-    float Metallic = DefMetallic;
     
     float3 CameraUp = unity_MatrixV[1].xyz;
     float3 ViewSide = normalize(cross(ViewDirection, CameraUp));
     float3 ViewUp = normalize(cross(ViewSide, ViewDirection));
     float3x3 WorldToMatcap = float3x3(ViewSide, ViewUp, ViewDirection);
     float3 NormalMatS = mul(WorldToMatcap, float4(NormalWS, 0.0f));
+    
+    float DiffuseOffset = DefDiffuse * 2.0f - 1.0f;
+    float Smoothness = min(DefSmoothness, 1);
+    float Metallic = DefMetallic;
+    
+    float SpecularIntensity = min(DefSpecular, Shadow);
+    
+    if (IsHair)
+    {
+        float IsHairProp = saturate(input.UV.x - 0.75f) * saturate(input.UV.y - 0.75f);
+        IsHairProp = IsHairProp != 0;
+        
+        // float HairSpecular = Pow4(saturate(dot(NormalWorM, ViewDirWorM)));
+        float HairSpecular = Pow4(saturate(dot(NormalWS, ViewDirection)));
+        HairSpecular = smoothstep(_SpecularThreshold.x - _SpecularThreshold.y, _SpecularThreshold.x + _SpecularThreshold.y, HairSpecular);
+        HairSpecular *= SpecularIntensity;
+        HairSpecular = IsHairProp ? 0 : HairSpecular;
+		
+        float3 HighlightMap = SAMPLE_TEXTURE2D(_HighlightMap, sampler_HighlightMap, input.UV.xy).xyz;
+        BaseMap.xyz = lerp(BaseMap.xyz, HighlightMap.xyz, HairSpecular);
+        
+        float HairFadeX = dot(_HeadDirection, ViewDirection);
+        HairFadeX = _FadeParam.x - HairFadeX;
+        HairFadeX = saturate(HairFadeX * _FadeParam.y);
+        float HairFadeZ = dot(_HeadUpDirection, ViewDirection);
+        HairFadeZ = abs(HairFadeZ) - _FadeParam.z;
+        HairFadeZ = saturate(HairFadeZ * _FadeParam.w);
+	
+        BaseMap.a = lerp(1, max(HairFadeX, HairFadeZ), BaseMap.a);
+	
+        SpecularIntensity *= IsHairProp ? 1 : 0;
+    }
     
     float4 RampAddMap = 0;
     float3 RampAddColor = 0;
@@ -203,7 +230,6 @@ half4 GakuLitPassFragment(
     float2 RampMapUV = float2(BaseLighting, 0);
     half4 RampMap = SAMPLE_TEXTURE2D(_RampMap, sampler_RampMap, RampMapUV);
     
-    float SpecularIntensity = min(DefSpecular, Shadow);
     const float ShadowIntensity = 0.55; // _MatCapParam.z? _MatCapParam (0,0,0.5490196,0)
     float3 RampedLighting = lerp(BaseMap.xyz, ShadeMap.xyz * _ShadeMultiplyColor, RampMap.w * ShadowIntensity);
     float3 SkinRampedLighting =	lerp(RampMap, RampMap.xyz * _ShadeMultiplyColor, RampMap.w);
@@ -246,7 +272,7 @@ half4 GakuLitPassFragment(
     Specular += SpecularTerm * SpecularColor;
     Specular += MatCapReflection;
     Specular *= SpecularIntensity;
-	// Specular = lerp(Specular, Specular * RampAddColor, RampAddMap.w);
+	Specular = lerp(Specular, Specular * RampAddColor, RampAddMap.w);
 
     float3 SH = SampleSH(NormalWS);
     float3 SkyLight = max(SH, 0);
@@ -254,6 +280,7 @@ half4 GakuLitPassFragment(
     half4 color = half4(1,1,1,1);
     color.rgb = brdfData.diffuse;
     color.rgb += Specular;
+    color.rgb += SkyLight;
 
     float alpha = BaseMap.a * _MultiplyColor.a;
     #if defined(_ALPHATEST_ON)
