@@ -30,8 +30,8 @@ Shader "Gaku/Character/Default"
 		_RefractThickness ("Refract Thickness", Float) = 0
 		_DefDebugMask ("Def Debug", Float) = 15
 		_SpecularThreshold ("Specular Threshold", Vector) = (0.6,0.05,0,0)
-		[KeywordEnum(REFLECTION_TEXTURE, EYE_REFLECTION_TEXTURE)]_USE("ReflectionSwitch", Float) = 0
-		[Toggle(_USE_REFLECTION_SPHERE)]_EnableReflectionSphereMap ("Use ReflectionSphereMap", Float) = 0
+		[KeywordEnum(REFLECTION_TEXTURE, EYE_REFLECTION_TEXTURE)] _USE("ReflectionSwitch", Float) = 0
+		[Toggle(_USE_REFLECTION_SPHERE)] _EnableReflectionSphereMap ("Use ReflectionSphereMap", Float) = 0
 		_ReflectionSphereMap ("Reflection Sphere", 2D) = "black" { }
 		_FadeParam ("Fade x=XOffset y=XScale z=YOffset w=YScale", Vector) = (0.75,2,0.4,4)
 		_ShaderType ("Shader Type", Float) = 0
