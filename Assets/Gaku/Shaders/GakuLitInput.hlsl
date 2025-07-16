@@ -2,6 +2,21 @@
 
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
 
+struct GakuInputData
+{
+    float3  positionWS;
+    float4  positionCS;
+    float3  normalWS;
+    half3   viewDirectionWS;
+    float4  shadowCoord;
+    half    fogCoord;
+    half3   vertexLighting;
+    half3   bakedGI;
+    float2  normalizedScreenSpaceUV;
+    half4   shadowMask;
+    half3x3 tangentToWorld;
+};
+
 CBUFFER_START(UnityPerMaterial)
 float4 _BaseColor;
 float4 _DefValue;

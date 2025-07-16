@@ -130,8 +130,8 @@ Shader "Gaku/Character/Default"
 			#pragma shader_feature_local _ _USE_REFLECTION_TEXTURE _USE_EYE_REFLECTION_TEXTURE
 			#pragma shader_feature_local _ _USE_REFLECTION_SPHERE
             
-			#include_with_pragmas "GakuLitInput.hlsl"
-			#include_with_pragmas "GakuLitForwardPass.hlsl"
+			#include "GakuLitInput.hlsl"
+			#include "GakuLitForwardPass.hlsl"
             
             ENDHLSL
         }

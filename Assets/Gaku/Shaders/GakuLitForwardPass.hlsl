@@ -66,6 +66,11 @@ GakuVertexColor DecodeVertexColor(float4 VertexColor)
     return OutColor;
 }
 
+void InitializeInputData(Varyings input, half3 normalTS, out GakuInputData inputData)
+{
+    
+}
+
 BRDFData InitializeGakuBRDFData(float3 BaseColor, float Smoothness, float Metallic, float Specular, bool IsEye)
 {
     float OutAlpha = 1.0f;
@@ -186,6 +191,7 @@ half4 GakuLitPassFragment(
     
     if (IsHair)
     {
+        // 머리 장신구인지는 UV의 값을 보고 판단
         float IsHairProp = saturate(input.UV.x - 0.75f) * saturate(input.UV.y - 0.75f);
         IsHairProp = IsHairProp != 0;
         
