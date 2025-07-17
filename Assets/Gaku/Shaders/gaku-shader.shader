@@ -135,6 +135,23 @@ Shader "Gaku/Character/Default"
             
             ENDHLSL
         }
+        // Outline
+		Pass
+		{
+			Name "Outline"
+			Tags
+			{
+				"LightMode"="UniversalForwardOutline"
+			}
+			Cull Front
+			ZWrite [_ZWrite]
+			Blend One Zero, One Zero
+			
+			HLSLPROGRAM
+
+			
+			ENDHLSL
+		}
         // Shadow Caster
         Pass
         {

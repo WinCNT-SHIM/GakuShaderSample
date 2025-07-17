@@ -207,17 +207,18 @@ half4 GakuLitPassFragment(
         float HairFadeX = dot(_HeadDirection, ViewDirection);
         HairFadeX = _FadeParam.x - HairFadeX;
         HairFadeX = saturate(HairFadeX * _FadeParam.y);
+        
         float HairFadeZ = dot(_HeadUpDirection, ViewDirection);
         HairFadeZ = abs(HairFadeZ) - _FadeParam.z;
         HairFadeZ = saturate(HairFadeZ * _FadeParam.w);
 	
         BaseMap.a = lerp(1, max(HairFadeX, HairFadeZ), BaseMap.a);
-	
         SpecularIntensity *= IsHairProp ? 1 : 0;
     }
     
     float4 RampAddMap = 0;
     float3 RampAddColor = 0;
+    
     #if defined(_RAMPADD_ON)
     float2 RampAddMapUV = float2(saturate(DiffuseOffset + NormalMatS.z), VertexColor.RampAddID);
     RampAddMap = SAMPLE_TEXTURE2D(_RampAddMap, sampler_RampAddMap, RampAddMapUV);
