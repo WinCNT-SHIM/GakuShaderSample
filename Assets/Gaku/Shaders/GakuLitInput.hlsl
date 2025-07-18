@@ -2,6 +2,40 @@
 
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
 
+struct Attributes
+{
+    float4 Position             : POSITION; 
+    float3 Normal               : NORMAL;
+    float4 Tangent              : TANGENT;   
+    float2 UV0                  : TEXCOORD0;
+    float2 UV1                  : TEXCOORD1;
+    float4 Color                : COLOR;  
+    float3 PrePosition          : TEXCOORD4;
+};
+
+struct Varyings
+{
+    float4 PositionCS           : SV_POSITION;
+    float4 UV                   : TEXCOORD0;
+    float3 PositionWS           : TEXCOORD1;
+    float4 Color1               : COLOR; 
+    float4 Color2               : TEXCOORD2;
+    float3 NormalWS             : TEXCOORD3;
+    float3 NormalHeadReflect    : TEXCOORD4;
+    float4 ShadowCoord          : TEXCOORD6;
+    float4 PositionCSNoJitter   : TEXCOORD7;
+    float4 PrePosionCS          : TEXCOORD8;
+};
+
+struct GakuVertexColor
+{
+    float4 OutLineColor;
+    float OutLineWidth;
+    float OutLineOffset;
+    float RampAddID;
+    float RimMask;
+};
+
 struct GakuInputData
 {
     float3  positionWS;
@@ -85,6 +119,38 @@ TEXTURE2D(_RampAddMap);              SAMPLER(sampler_RampAddMap);
 TEXTURE2D(_EmissionMap);             SAMPLER(sampler_EmissionMap);
 TEXTURE2D(_ReflectionSphereMap);     SAMPLER(sampler_ReflectionSphereMap);
 TEXTURECUBE(_VLSpecCube);            SAMPLER(sampler_VLSpecCube);
+
+//////////////////////////////////////////////////
+/// 버텍스 걸러 디코드 함수
+//////////////////////////////////////////////////
+void Decode8BitTo4Bit(float4 color, out float4 highNibble, out float4 lowNibble)
+{
+    // 0~255 정수로 변환 (반올림)
+    uint4 c = (uint4)(color * 255.0f + 0.5f);
+
+    // 상위 4비트: 16으로 나눔 == 우측 시프트 4
+    uint4 High = c >> 4;
+    // 하위 4비트: 0xF(1111) 마스크
+    uint4 Low  = c & 0xF;
+
+    // 0~15 → 0~1 정규화
+    const float norm = 1.0f / 15.0f;
+    highNibble = (float4) High * norm;
+    lowNibble = (float4) Low  * norm;
+}
+
+GakuVertexColor DecodeVertexColor(float4 VertexColor)
+{
+    GakuVertexColor OutColor;
+    float4 LowBit, HighBit;
+    Decode8BitTo4Bit(VertexColor, HighBit, LowBit);
+    OutColor.OutLineColor = float4(HighBit.x, LowBit.x, HighBit.y, LowBit.w);
+    OutColor.OutLineWidth = LowBit.z;
+    OutColor.OutLineOffset = HighBit.z;
+    OutColor.RampAddID = LowBit.y;
+    OutColor.RimMask = HighBit.w;
+    return OutColor;
+}
 
 //////////////////////////////////////////////////
 /// 셀프 쉐도우용

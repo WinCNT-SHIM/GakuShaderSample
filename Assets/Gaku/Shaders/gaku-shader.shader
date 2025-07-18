@@ -148,8 +148,33 @@ Shader "Gaku/Character/Default"
 			Blend One Zero, One Zero
 			
 			HLSLPROGRAM
+            // -------------------------------------
+            // Shader Stages
+            #pragma vertex GakuOutlineVertex
+            #pragma fragment GakuOutlineFragment
+            
+			#include "GakuLitInput.hlsl"
 
-			
+            Varyings GakuOutlineVertex(Attributes input)
+            {
+            	Varyings output = (Varyings)0;
+
+            	UNITY_SETUP_INSTANCE_ID(input);
+            	UNITY_TRANSFER_INSTANCE_ID(input, output);
+            	UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(output);
+
+            	VertexPositionInputs vertexInput = GetVertexPositionInputs(input.Position.xyz);
+            	VertexNormalInputs normalInput = GetVertexNormalInputs(input.Normal, input.Tangent);
+
+            	output.PositionCS = vertexInput.positionCS;
+            	
+            	return output;
+            }
+
+            half4 GakuOutlineFragment(Varyings input, bool IsFront : SV_IsFrontFace) : SV_Target0
+			{
+				return float4(1,0,0,0);
+			}
 			ENDHLSL
 		}
         // Shadow Caster
