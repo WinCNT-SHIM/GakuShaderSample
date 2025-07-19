@@ -151,7 +151,7 @@ Shader "Gaku/Character/Default"
             // -------------------------------------
             // Shader Stages
             #pragma vertex GakuOutlineVertex
-            #pragma fragment GakuOutlineFragment
+            // #pragma fragment GakuOutlineFragment
             
 			#include "GakuLitInput.hlsl"
 
@@ -173,7 +173,7 @@ Shader "Gaku/Character/Default"
 
             half4 GakuOutlineFragment(Varyings input, bool IsFront : SV_IsFrontFace) : SV_Target0
 			{
-				return float4(1,0,0,0);
+				return float4(0,0,0,0);
 			}
 			ENDHLSL
 		}
