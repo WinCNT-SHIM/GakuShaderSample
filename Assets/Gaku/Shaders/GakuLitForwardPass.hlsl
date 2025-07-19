@@ -40,10 +40,10 @@ Varyings GakuLitPassVertex(Attributes input)
     output.ShadowCoord = GetShadowCoord(vertexInput);
 
     GakuVertexColor VertexColor = DecodeVertexColor(input.Color);
-    output.Color1 = VertexColor.OutLineColor;
+    output.Color1 = VertexColor.OutlineColor;
     output.Color2 = float4(
-        VertexColor.OutLineWidth,
-        VertexColor.OutLineOffset,
+        VertexColor.OutlineWidth,
+        VertexColor.OutlineOffset,
         VertexColor.RampAddID,
         VertexColor.RimMask
     );
@@ -70,9 +70,9 @@ half4 GakuLitPassFragment(
     // InitializeStandardLitSurfaceData(input.uv, surfaceData);
     
     GakuVertexColor VertexColor;
-    VertexColor.OutLineColor = input.Color1;
-    VertexColor.OutLineWidth = input.Color2.x;
-    VertexColor.OutLineOffset = input.Color2.y;
+    VertexColor.OutlineColor = input.Color1;
+    VertexColor.OutlineWidth = input.Color2.x;
+    VertexColor.OutlineOffset = input.Color2.y;
     VertexColor.RampAddID = input.Color2.z;
     VertexColor.RimMask = input.Color2.w;
 

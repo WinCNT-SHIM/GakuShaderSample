@@ -29,9 +29,9 @@ struct Varyings
 
 struct GakuVertexColor
 {
-    float4 OutLineColor;
-    float OutLineWidth;
-    float OutLineOffset;
+    float4 OutlineColor;
+    float OutlineWidth;
+    float OutlineOffset;
     float RampAddID;
     float RimMask;
 };
@@ -144,9 +144,9 @@ GakuVertexColor DecodeVertexColor(float4 VertexColor)
     GakuVertexColor OutColor;
     float4 LowBit, HighBit;
     Decode8BitTo4Bit(VertexColor, HighBit, LowBit);
-    OutColor.OutLineColor = float4(HighBit.x, LowBit.x, HighBit.y, LowBit.w);
-    OutColor.OutLineWidth = LowBit.z;
-    OutColor.OutLineOffset = HighBit.z;
+    OutColor.OutlineColor = float4(HighBit.x, LowBit.x, HighBit.y, LowBit.w);
+    OutColor.OutlineWidth = LowBit.z;
+    OutColor.OutlineOffset = HighBit.z;
     OutColor.RampAddID = LowBit.y;
     OutColor.RimMask = HighBit.w;
     return OutColor;

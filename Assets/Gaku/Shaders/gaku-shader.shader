@@ -164,9 +164,19 @@ Shader "Gaku/Character/Default"
             	UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(output);
 
             	VertexPositionInputs vertexInput = GetVertexPositionInputs(input.Position.xyz);
-            	VertexNormalInputs normalInput = GetVertexNormalInputs(input.Normal, input.Tangent);
-
-            	output.PositionCS = vertexInput.positionCS;
+            	// 탄젠트에 부드러운 노멀 값이 담겨있음
+				float3 SmoothNormalWS = TransformObjectToWorldNormal(input.Tangent);
+            	// 버텍스 컬러에 아웃라인에 관한 정보가 담겨있음
+            	GakuVertexColor VertexColor = DecodeVertexColor(input.Color);
+            	output.Color1 = VertexColor.OutlineColor;
+            	output.Color2 = float4(
+			        VertexColor.OutlineWidth,
+			        VertexColor.OutlineOffset,
+			        VertexColor.RampAddID,
+			        VertexColor.RimMask
+			    );
+            	
+				float CameraDistance = length(_WorldSpaceCameraPos - vertexInput.positionWS);
             	
             	return output;
             }
