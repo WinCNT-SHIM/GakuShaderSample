@@ -29,7 +29,12 @@ namespace Gaku
         
         [SerializeField][ColorUsage(true, false)] private Color shadeMultiplyColor = Color.white;
         [SerializeField][ColorUsage(true, true)] private Color eyeHightlightColor = Color.white;
-        [SerializeField][Range(0f, 10f)] private float outline = 0.2f;
+        // 최소, 최대 윤곽선 두께 (카메라에 가까울 때 / 멀리 있을 때)
+        [SerializeField][Range(0f, 10f)] private float outlineWidthMin = 0.2f;
+        [SerializeField][Range(0f, 10f)] private float outlineWidthMax = 1.0f;
+        // 거리 보간 계수 설정 (거리 기반으로 0→1 보간될 때 쓰이는 값)
+        [SerializeField][Range(0f, 10f)] private float outlineFadeScale = 0.02f;
+        [SerializeField][Range(0f, 10f)] private float outlineFadeStrength = 1.0f;
         
         private List<Renderer> gakuRenderers = new();
         private MaterialPropertyBlock materialPropertyBlock;
@@ -136,7 +141,7 @@ namespace Gaku
         {
             material.SetColor(ShadeMultiplyColorSid, shadeMultiplyColor); 
             material.SetColor(EyeHightlightColorSid, eyeHightlightColor); 
-            material.SetFloat(OutlineParamSid, outline);
+            material.SetVector(OutlineParamSid, new Vector4(outlineWidthMin, outlineWidthMax, outlineFadeScale, outlineFadeStrength));
             
             if (!headFace) return;
             material.SetVector(HeadDirectionSid, faceForwardDirectionWs);
@@ -147,7 +152,7 @@ namespace Gaku
         {
             mpb.SetColor(ShadeMultiplyColorSid, shadeMultiplyColor); 
             mpb.SetColor(EyeHightlightColorSid, eyeHightlightColor);
-            mpb.SetFloat(OutlineParamSid, outline);
+            mpb.SetVector(OutlineParamSid, new Vector4(outlineWidthMin, outlineWidthMax, outlineFadeScale, outlineFadeStrength));
             
             if (!headFace) return;
             mpb.SetVector(HeadDirectionSid, faceForwardDirectionWs);
