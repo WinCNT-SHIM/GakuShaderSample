@@ -151,7 +151,7 @@ Shader "Gaku/Character/Default"
             // -------------------------------------
             // Shader Stages
             #pragma vertex GakuOutlineVertex
-            // #pragma fragment GakuOutlineFragment
+            #pragma fragment GakuOutlineFragment
             
 			#include "GakuLitInput.hlsl"
 
@@ -177,13 +177,29 @@ Shader "Gaku/Character/Default"
 			    );
             	
 				float CameraDistance = length(_WorldSpaceCameraPos - vertexInput.positionWS);
+				float OutLineWidth = min(CameraDistance * _OutlineParam.z * _OutlineParam.w, 1.0f);
+				OutLineWidth = lerp(_OutlineParam.x, _OutlineParam.y, OutLineWidth);
+				OutLineWidth *= 0.01f * VertexColor.OutlineWidth;
+
+				float3 OffsetVector = OutLineWidth * SmoothNormalWS;
+				float3 OffsetedPositionWS = vertexInput.positionWS + OffsetVector;
+				float4 OffsetedPositionCS = TransformWorldToHClip(OffsetedPositionWS);
+            	// Z‑파이팅(깊이 충돌)을 피하기 위한 0.000066667
+				OffsetedPositionCS.z -= VertexColor.OutlineOffset * 6.66666747e-05;
+				output.PositionCS = OffsetedPositionCS;
             	
             	return output;
             }
 
             half4 GakuOutlineFragment(Varyings input, bool IsFront : SV_IsFrontFace) : SV_Target0
 			{
-				return float4(0,0,0,0);
+				float3 OutlineColor = input.Color1.xyz * _MultiplyOutlineColor.xyz;
+				float OutlineAlpha = _MultiplyColor.a;
+
+				// _ShaderType가 1인 경우는 아웃라인을 만들지 않음
+				if (_ShaderType == 1) discard;
+				
+				return float4(OutlineColor, OutlineAlpha);
 			}
 			ENDHLSL
 		}
