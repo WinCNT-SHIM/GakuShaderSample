@@ -78,7 +78,7 @@ Shader "Gaku/Character/Default"
         	Name "GakuForwardLit"
             Tags
             {
-                "LightMode" = "UniversalForward"
+                "LightMode" = "GakuUniversalForward"
             }
             // -------------------------------------
             // Render State Commands
@@ -193,11 +193,12 @@ Shader "Gaku/Character/Default"
 
             half4 GakuOutlineFragment(Varyings input, bool IsFront : SV_IsFrontFace) : SV_Target0
 			{
+				// _ShaderType가 1인 경우는 아웃라인을 만들지 않음
+				// (후에 커스텀 ShaderGUI에서 제어할 예정)
+				if (_ShaderType == 1) discard;
+				
 				float3 OutlineColor = input.Color1.xyz * _MultiplyOutlineColor.xyz;
 				float OutlineAlpha = _MultiplyColor.a;
-
-				// _ShaderType가 1인 경우는 아웃라인을 만들지 않음
-				if (_ShaderType == 1) discard;
 				
 				return float4(OutlineColor, OutlineAlpha);
 			}

@@ -141,7 +141,7 @@ half4 GakuLitPassFragment(
         float3 HighlightMap = SAMPLE_TEXTURE2D(_HighlightMap, sampler_HighlightMap, input.UV.xy).xyz;
         BaseMap.xyz = lerp(BaseMap.xyz, HighlightMap.xyz, HairSpecular);
         
-        float HairFadeX = dot(_HeadDirection, ViewDirection);
+        float HairFadeX = dot(_HeadDirection.xyz, ViewDirection);
         HairFadeX = _FadeParam.x - HairFadeX;
         HairFadeX = saturate(HairFadeX * _FadeParam.y);
         

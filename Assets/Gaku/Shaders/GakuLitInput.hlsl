@@ -104,7 +104,6 @@ float4 _MatCapRimColor;
 float4 _MatCapRimLight;
 float4 _GlobalLightParameter;
 float4 _ReflectionSphereMap_HDR;
-float4 _OutlineParam;
 CBUFFER_END
 
 TEXTURE2D(_BaseMap);                 SAMPLER(sampler_BaseMap);
@@ -164,4 +163,5 @@ float4 _GakuSelfShadowParam;
 float _GakuGlobalSelfShadowDepthBias;
 half3 _GakuSelfShadowLightDirection;
 half _GakuSelfShadowUseNdotLFix;
+float4 _OutlineParam;
 // float _SelfShadowMappingPosOffset;
