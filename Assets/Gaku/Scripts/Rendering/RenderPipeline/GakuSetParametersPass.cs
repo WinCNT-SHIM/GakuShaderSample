@@ -125,9 +125,7 @@ namespace Gaku
             }
 
             if (gakuVolume.SH2.overrideState)
-            {
                 RenderSettings.ambientProbe = gakuVolume.SH2.value;
-            }
         }
 
         public void Dispose()

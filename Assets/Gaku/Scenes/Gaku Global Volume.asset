@@ -155,7 +155,7 @@ MonoBehaviour:
     m_OverrideState: 0
     m_Value: {fileID: 0}
   SH2:
-    m_OverrideState: 1
+    m_OverrideState: 0
     m_Value:
       'sh[ 0]': 0
       'sh[ 1]': 0

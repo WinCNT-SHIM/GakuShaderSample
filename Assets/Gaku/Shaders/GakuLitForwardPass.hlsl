@@ -83,7 +83,7 @@ half4 GakuLitPassFragment(
     bool IsEyeBrow = _ShaderType == 6;
     
     float3 NormalWS = normalize(input.NormalWS);
-    NormalWS = IsFront ? NormalWS : -NormalWS;
+	NormalWS = IsFront ? NormalWS : NormalWS * -1.0f;
     
     half3 ViewDirection = GetWorldSpaceNormalizeViewDir(input.PositionWS);
     
@@ -219,7 +219,7 @@ half4 GakuLitPassFragment(
 	Specular = lerp(Specular, Specular * RampAddColor, RampAddMap.w);
 
     float3 SH = SampleSH(NormalWS);
-    float3 SkyLight = max(SH, 0);
+    float3 SkyLight = max(SH, 0) * brdfData.diffuse * 0.25; // _GlobalLightParameter.x
     
     half4 color = half4(1,1,1,1);
     color.rgb = brdfData.diffuse;
