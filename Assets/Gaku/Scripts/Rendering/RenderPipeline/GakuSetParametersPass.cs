@@ -56,7 +56,7 @@ namespace Gaku
                 if (gakuVolume.active)
                 {
                     SetGlobalVolumeParams(cmd, camera);
-                    SetSceneAmbientLighting();
+                    // SetSceneAmbientLighting();
                 }
             }
 
