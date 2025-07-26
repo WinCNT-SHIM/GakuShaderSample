@@ -127,6 +127,18 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 0}
     m_Modifications:
+    - target: {fileID: 1116348428618467265, guid: 0cc7725892a73dc4899c7ce8a2a7580d, type: 3}
+      propertyPath: outlineWidthMax
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 1116348428618467265, guid: 0cc7725892a73dc4899c7ce8a2a7580d, type: 3}
+      propertyPath: outlineFadeScale
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 1116348428618467265, guid: 0cc7725892a73dc4899c7ce8a2a7580d, type: 3}
+      propertyPath: outlineFadeStrength
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 4718578134374647493, guid: 0cc7725892a73dc4899c7ce8a2a7580d, type: 3}
       propertyPath: m_Name
       value: Chara_fktn_cstm_0001

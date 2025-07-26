@@ -120,7 +120,7 @@ TEXTURE2D(_ReflectionSphereMap);     SAMPLER(sampler_ReflectionSphereMap);
 TEXTURECUBE(_VLSpecCube);            SAMPLER(sampler_VLSpecCube);
 
 //////////////////////////////////////////////////
-/// 버텍스 걸러 디코드 함수
+/// 버텍스 컬러 디코드 함수
 //////////////////////////////////////////////////
 void Decode8BitTo4Bit(float4 color, out float4 highNibble, out float4 lowNibble)
 {

@@ -166,23 +166,19 @@ Shader "Gaku/Character/Default"
             	VertexPositionInputs vertexInput = GetVertexPositionInputs(input.Position.xyz);
             	// 탄젠트에 부드러운 노멀 값이 담겨있음
 				float3 SmoothNormalWS = TransformObjectToWorldNormal(input.Tangent);
+				float3 PositionWS = vertexInput.positionWS;
+            	
             	// 버텍스 컬러에 아웃라인에 관한 정보가 담겨있음
             	GakuVertexColor VertexColor = DecodeVertexColor(input.Color);
             	output.Color1 = VertexColor.OutlineColor;
-            	output.Color2 = float4(
-			        VertexColor.OutlineWidth,
-			        VertexColor.OutlineOffset,
-			        VertexColor.RampAddID,
-			        VertexColor.RimMask
-			    );
             	
-				float CameraDistance = length(_WorldSpaceCameraPos - vertexInput.positionWS);
+				float CameraDistance = length(_WorldSpaceCameraPos - PositionWS);
 				float OutLineWidth = min(CameraDistance * _OutlineParam.z * _OutlineParam.w, 1.0f);
 				OutLineWidth = lerp(_OutlineParam.x, _OutlineParam.y, OutLineWidth);
 				OutLineWidth *= 0.01f * VertexColor.OutlineWidth;
 
 				float3 OffsetVector = OutLineWidth * SmoothNormalWS;
-				float3 OffsetedPositionWS = vertexInput.positionWS + OffsetVector;
+				float3 OffsetedPositionWS = PositionWS + OffsetVector;
 				float4 OffsetedPositionCS = TransformWorldToHClip(OffsetedPositionWS);
             	// Z‑파이팅(깊이 충돌)을 피하기 위한 0.000066667
 				OffsetedPositionCS.z -= VertexColor.OutlineOffset * 6.66666747e-05;
