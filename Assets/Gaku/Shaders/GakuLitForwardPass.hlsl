@@ -38,6 +38,8 @@ Varyings GakuLitPassVertex(Attributes input)
     output.NormalWS = normalInput.normalWS;
     output.PositionWS = vertexInput.positionWS;
     output.ShadowCoord = GetShadowCoord(vertexInput);
+    
+    output.NormalHeadReflect = mul(_HeadXAxisReflectionMatrix, float4(input.Normal, 0.0f)).xyz;
 
     GakuVertexColor VertexColor = DecodeVertexColor(input.Color);
     output.Color1 = VertexColor.OutlineColor;
@@ -76,10 +78,10 @@ half4 GakuLitPassFragment(
     VertexColor.RampAddID = input.Color2.z;
     VertexColor.RimMask = input.Color2.w;
 
-    bool IsFace = _ShaderType == 9;
-    bool IsHair = _ShaderType == 8;
     bool IsEye = _ShaderType == 4;
     bool IsEyeHightLight = _ShaderType == 5;
+    bool IsHair = _ShaderType == 8;
+    bool IsFace = _ShaderType == 9;
     bool IsEyeBrow = _ShaderType == 6;
     
     float3 NormalWS = normalize(input.NormalWS);
@@ -122,7 +124,7 @@ half4 GakuLitPassFragment(
     
     float DiffuseOffset = DefDiffuse * 2.0f - 1.0f;
     float Smoothness = min(DefSmoothness, 1);
-    float Metallic = DefMetallic;
+	float Metallic = IsFace ? 0 : DefMetallic;
     
     float SpecularIntensity = min(DefSpecular, Shadow);
     
@@ -169,6 +171,15 @@ half4 GakuLitPassFragment(
     float BaseLighting = NoL * 0.5f + 0.5f;
     // BaseLighting = saturate(BaseLighting + (DiffuseOffset - _MatCapParam.x) * 0.5f);
     BaseLighting = saturate(BaseLighting + (DiffuseOffset - 0.025) * 0.5f);
+
+    float3 NormalHeadMatS = mul(WorldToMatcap, input.NormalHeadReflect.xyz);
+    // float FaceNoL = DisableMatCap ? dot(input.NormalHeadReflect, _MatCapMainLight) : dot(NormalHeadMatS, _MatCapMainLight);
+    float FaceNoL = dot(input.NormalHeadReflect, _MatCapMainLight);
+    float FaceLighting = saturate((FaceNoL + DiffuseOffset) * 0.5f + 0.5f);
+    FaceLighting = max(FaceLighting, BaseLighting);
+    FaceLighting = lerp(BaseLighting, FaceLighting, DefMetallic);
+    
+    BaseLighting = IsFace ? FaceLighting : BaseLighting;
     BaseLighting = min(BaseLighting, Shadow);
     
     float2 RampMapUV = float2(BaseLighting, 0);
