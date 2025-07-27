@@ -14,14 +14,14 @@ namespace Gaku
         private enum TransformDirection
         {
             X, Y, Z,
-            negX, negY, negZ,
+            NegativeX, NegativeY, NegativeZ,
         }
         
         [SerializeField] private Transform pelvis;
         [SerializeField] private Transform headFace;
         public Transform HeadFace => headFace;
         
-        [SerializeField] private TransformDirection faceForwardDirection = TransformDirection.negX;
+        [SerializeField] private TransformDirection faceForwardDirection = TransformDirection.NegativeX;
         [SerializeField] private TransformDirection faceUpDirection = TransformDirection.Y;
         [SerializeField] private TransformDirection faceRightDirection = TransformDirection.Z;
         [SerializeField] [Range(0f, 0.5f)] private float headOffset = 0.2f;
@@ -169,9 +169,9 @@ namespace Gaku
                 TransformDirection.X => right,
                 TransformDirection.Y => up,
                 TransformDirection.Z => forward,
-                TransformDirection.negX => -right,
-                TransformDirection.negY => -up,
-                TransformDirection.negZ => -forward,
+                TransformDirection.NegativeX => -right,
+                TransformDirection.NegativeY => -up,
+                TransformDirection.NegativeZ => -forward,
                 _ => throw new NotImplementedException()
             };
         }
