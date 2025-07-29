@@ -21,10 +21,13 @@ namespace Gaku
         [SerializeField] private Transform headFace;
         public Transform HeadFace => headFace;
         
-        [SerializeField] private TransformDirection faceForwardDirection = TransformDirection.NegativeX;
-        [SerializeField] private TransformDirection faceUpDirection = TransformDirection.Y;
-        [SerializeField] private TransformDirection faceRightDirection = TransformDirection.Z;
-        [SerializeField] [Range(0f, 0.5f)] private float headOffset = 0.2f;
+        [Header("얼굴 Transform Gizmo")]
+        [SerializeField] private bool isDrawGizmo = true;
+        [Header("얼굴 Transform 방향")]
+        [SerializeField] private TransformDirection faceRightDirection   = TransformDirection.X;
+        [SerializeField] private TransformDirection faceUpDirection      = TransformDirection.Y;
+        [SerializeField] private TransformDirection faceForwardDirection = TransformDirection.Z;
+        [SerializeField] [Range(0f, 0.5f)] private float headOffset = 0.0f;
         public float HeadOffset => headOffset;
         
         [SerializeField][ColorUsage(true, false)] private Color shadeMultiplyColor = Color.white;
