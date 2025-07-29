@@ -198,5 +198,24 @@ namespace Gaku
                 headFace = children.FirstOrDefault(t =>
                     t.gameObject.name.Equals("Head_Face", StringComparison.OrdinalIgnoreCase));
         }
+        // https://forum.unity.com/threads/debug-drawarrow.85980/
+        private static void DrawArrow(Vector3 pos, Vector3 direction, Color color, float arrowHeadLength = 0.05f, float arrowHeadAngle = 15f)
+        {
+            if (direction.magnitude == 0) return;
+            
+            direction *= 0.3f;
+            Gizmos.color = color;
+            Gizmos.DrawRay(pos, direction);
+            
+            var right = Quaternion.LookRotation(direction) * Quaternion.Euler(0, 180 + arrowHeadAngle, 0) * new Vector3(0, 0, 1);
+            var left  = Quaternion.LookRotation(direction) * Quaternion.Euler(0, 180 - arrowHeadAngle, 0) * new Vector3(0, 0, 1);
+            var up    = Quaternion.LookRotation(direction) * Quaternion.Euler(+arrowHeadAngle, 180, 0) * new Vector3(0, 0, 1);
+            var down  = Quaternion.LookRotation(direction) * Quaternion.Euler(-arrowHeadAngle, 180, 0) * new Vector3(0, 0, 1);
+            
+            Gizmos.DrawRay(pos + direction, right * arrowHeadLength);
+            Gizmos.DrawRay(pos + direction, left * arrowHeadLength);
+            Gizmos.DrawRay(pos + direction, up * arrowHeadLength);
+            Gizmos.DrawRay(pos + direction, down * arrowHeadLength);
+        }
     }
 }
