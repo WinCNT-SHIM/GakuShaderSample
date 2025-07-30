@@ -198,6 +198,17 @@ namespace Gaku
                 headFace = children.FirstOrDefault(t =>
                     t.gameObject.name.Equals("Head_Face", StringComparison.OrdinalIgnoreCase));
         }
+        
+        private void OnDrawGizmos()
+        {
+            if (!isDrawGizmo || !headFace) return;
+            
+            var position = facePositionWs;
+            DrawArrow(position, faceForwardDirectionWs, new Color(0, 0, 1, 1f));
+            DrawArrow(position, faceUpDirectionWs, new Color(0, 1, 0, 1f));
+            DrawArrow(position, faceRightDirectionWs, new Color(1, 0, 0, 1f));
+        }
+        
         // https://forum.unity.com/threads/debug-drawarrow.85980/
         private static void DrawArrow(Vector3 pos, Vector3 direction, Color color, float arrowHeadLength = 0.05f, float arrowHeadAngle = 15f)
         {
