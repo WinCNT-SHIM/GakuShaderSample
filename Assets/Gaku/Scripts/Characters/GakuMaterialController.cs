@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
-using UnityEngine.Serialization;
 
 namespace Gaku
 {
@@ -49,12 +48,14 @@ namespace Gaku
         private Vector3 faceUpDirectionWs;
         private Vector3 faceRightDirectionWs;
         private Vector3 facePositionWs;
+        private Matrix4x4 headXAxisReflectionMatrix = Matrix4x4.identity;
 #region Shader Properties
         private static readonly int HeadDirectionSid = Shader.PropertyToID("_HeadDirection");
         private static readonly int HeadUpDirectionSid = Shader.PropertyToID("_HeadUpDirection");
         private static readonly int ShadeMultiplyColorSid = Shader.PropertyToID("_ShadeMultiplyColor");
         private static readonly int EyeHightlightColorSid = Shader.PropertyToID("_EyeHightlightColor");
         private static readonly int OutlineParamSid = Shader.PropertyToID("_OutlineParam");
+        private static readonly int HeadXAxisReflectionMatrixSid = Shader.PropertyToID("_HeadXAxisReflectionMatrix");
 #endregion
         
         private void OnEnable()
@@ -88,9 +89,9 @@ namespace Gaku
 
             if (headFace)
             {
+                faceRightDirectionWs = GetFaceDirectionWorldSpace(faceRightDirection);
                 faceForwardDirectionWs = GetFaceDirectionWorldSpace(faceForwardDirection);
                 faceUpDirectionWs = GetFaceDirectionWorldSpace(faceUpDirection);
-                faceRightDirectionWs = GetFaceDirectionWorldSpace(faceRightDirection);
                 facePositionWs = headFace.position + faceUpDirectionWs * headOffset;
             }
             
@@ -100,7 +101,9 @@ namespace Gaku
                 foreach (var charaRenderer in gakuRenderers)
                 {
                     if (!charaRenderer) return;
-                    if (lastFrameShouldEditMaterial is false) charaRenderer.SetPropertyBlock(null);
+                    if (lastFrameShouldEditMaterial is false)
+                        charaRenderer.SetPropertyBlock(null);
+                    
                     charaRenderer.GetMaterials(tempMaterialList);
                     foreach (var material in tempMaterialList)
                         UpdateMaterial(material);
@@ -109,9 +112,12 @@ namespace Gaku
             else
             {
                 materialPropertyBlock ??= new MaterialPropertyBlock();
-                foreach (var charaRenderer in gakuRenderers) {
+                foreach (var charaRenderer in gakuRenderers)
+                {
                     if (!charaRenderer) return;
-                    if (charaRenderer.HasPropertyBlock()) charaRenderer.GetPropertyBlock(materialPropertyBlock);
+                    if (charaRenderer.HasPropertyBlock())
+                        charaRenderer.GetPropertyBlock(materialPropertyBlock);
+                    
                     UpdateMaterialPropertyBlock(materialPropertyBlock);
                     charaRenderer.SetPropertyBlock(materialPropertyBlock);
                 }
