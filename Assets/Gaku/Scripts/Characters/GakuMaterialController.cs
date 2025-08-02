@@ -93,6 +93,13 @@ namespace Gaku
                 faceForwardDirectionWs = GetFaceDirectionWorldSpace(faceForwardDirection);
                 faceUpDirectionWs = GetFaceDirectionWorldSpace(faceUpDirection);
                 facePositionWs = headFace.position + faceUpDirectionWs * headOffset;
+                
+                // 얼굴의 X축 대칭 행렬(Reflection Matrix)
+                headXAxisReflectionMatrix = Matrix4x4.identity;
+                headXAxisReflectionMatrix.SetColumn(0, -faceRightDirectionWs);
+                headXAxisReflectionMatrix.SetColumn(1, faceForwardDirectionWs);
+                headXAxisReflectionMatrix.SetColumn(2, faceUpDirectionWs);
+                headXAxisReflectionMatrix.SetColumn(3, new Vector4(0, 0, 0, 1));
             }
             
             var shouldEditMaterial = Application.isPlaying;
@@ -155,6 +162,7 @@ namespace Gaku
             if (!headFace) return;
             material.SetVector(HeadDirectionSid, faceForwardDirectionWs);
             material.SetVector(HeadUpDirectionSid, faceUpDirectionWs);
+            material.SetMatrix(HeadXAxisReflectionMatrixSid, headXAxisReflectionMatrix);
         }
 
         private void UpdateMaterialPropertyBlock(MaterialPropertyBlock mpb)
@@ -166,6 +174,7 @@ namespace Gaku
             if (!headFace) return;
             mpb.SetVector(HeadDirectionSid, faceForwardDirectionWs);
             mpb.SetVector(HeadUpDirectionSid, faceUpDirectionWs);
+            mpb.SetMatrix(HeadXAxisReflectionMatrixSid, headXAxisReflectionMatrix);
         }
         
         private Vector3 GetFaceDirectionWorldSpace(TransformDirection direction)

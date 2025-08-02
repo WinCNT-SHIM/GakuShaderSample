@@ -38,7 +38,7 @@ Varyings GakuLitPassVertex(Attributes input)
     output.NormalWS = normalInput.normalWS;
     output.PositionWS = vertexInput.positionWS;
     output.ShadowCoord = GetShadowCoord(vertexInput);
-    
+    // 얼굴의 X축 대칭 법선
     output.NormalHeadReflect = mul(_HeadXAxisReflectionMatrix, float4(input.Normal, 0.0f)).xyz;
 
     GakuVertexColor VertexColor = DecodeVertexColor(input.Color);
