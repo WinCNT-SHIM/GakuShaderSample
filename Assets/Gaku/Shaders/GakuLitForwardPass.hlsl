@@ -174,7 +174,9 @@ half4 GakuLitPassFragment(
 
     float3 NormalHeadMatS = mul(WorldToMatcap, input.NormalHeadReflect.xyz);
     // float FaceNoL = DisableMatCap ? dot(input.NormalHeadReflect, _MatCapMainLight) : dot(NormalHeadMatS, _MatCapMainLight);
-    float FaceNoL = dot(input.NormalHeadReflect, _MatCapMainLight);
+    // float FaceNoL = dot(input.NormalHeadReflect, _MatCapMainLight);
+    // float FaceNoL = dot(NormalHeadMatS, _MatCapMainLight);
+    float FaceNoL = dot(NormalHeadMatS, normalize(mainLight.direction));
     float FaceLighting = saturate((FaceNoL + DiffuseOffset) * 0.5f + 0.5f);
     FaceLighting = max(FaceLighting, BaseLighting);
     FaceLighting = lerp(BaseLighting, FaceLighting, DefMetallic);
