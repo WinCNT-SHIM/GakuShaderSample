@@ -97,8 +97,8 @@ namespace Gaku
                 // 얼굴의 X축 대칭 행렬(Reflection Matrix)
                 headXAxisReflectionMatrix = Matrix4x4.identity;
                 headXAxisReflectionMatrix.SetColumn(0, -faceRightDirectionWs);
-                headXAxisReflectionMatrix.SetColumn(1, faceForwardDirectionWs);
-                headXAxisReflectionMatrix.SetColumn(2, faceUpDirectionWs);
+                headXAxisReflectionMatrix.SetColumn(1, faceUpDirectionWs);
+                headXAxisReflectionMatrix.SetColumn(2, faceForwardDirectionWs);
                 headXAxisReflectionMatrix.SetColumn(3, new Vector4(0, 0, 0, 1));
             }
             
