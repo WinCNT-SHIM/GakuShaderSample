@@ -30,7 +30,7 @@ namespace Gaku
         public float HeadOffset => headOffset;
         
         [SerializeField][ColorUsage(true, false)] private Color shadeMultiplyColor = Color.white;
-        [SerializeField][ColorUsage(true, true)] private Color eyeHightlightColor = Color.white;
+        [SerializeField][ColorUsage(true, true)] private Color eyeHighlightColor = Color.white;
         // 최소, 최대 윤곽선 두께 (카메라에 가까울 때 / 멀리 있을 때)
         [SerializeField][Range(0f, 10f)] private float outlineWidthMin = 0.2f;
         [SerializeField][Range(0f, 10f)] private float outlineWidthMax = 1.0f;
@@ -53,7 +53,7 @@ namespace Gaku
         private static readonly int HeadDirectionSid = Shader.PropertyToID("_HeadDirection");
         private static readonly int HeadUpDirectionSid = Shader.PropertyToID("_HeadUpDirection");
         private static readonly int ShadeMultiplyColorSid = Shader.PropertyToID("_ShadeMultiplyColor");
-        private static readonly int EyeHightlightColorSid = Shader.PropertyToID("_EyeHightlightColor");
+        private static readonly int EyeHighlightColorSid = Shader.PropertyToID("_EyeHighlightColor");
         private static readonly int OutlineParamSid = Shader.PropertyToID("_OutlineParam");
         private static readonly int HeadXAxisReflectionMatrixSid = Shader.PropertyToID("_HeadXAxisReflectionMatrix");
 #endregion
@@ -156,7 +156,7 @@ namespace Gaku
         private void UpdateMaterial(Material material)
         {
             material.SetColor(ShadeMultiplyColorSid, shadeMultiplyColor); 
-            material.SetColor(EyeHightlightColorSid, eyeHightlightColor); 
+            material.SetColor(EyeHighlightColorSid, eyeHighlightColor); 
             material.SetVector(OutlineParamSid, new Vector4(outlineWidthMin, outlineWidthMax, outlineFadeScale, outlineFadeStrength));
             
             if (!headFace) return;
@@ -168,7 +168,7 @@ namespace Gaku
         private void UpdateMaterialPropertyBlock(MaterialPropertyBlock mpb)
         {
             mpb.SetColor(ShadeMultiplyColorSid, shadeMultiplyColor); 
-            mpb.SetColor(EyeHightlightColorSid, eyeHightlightColor);
+            mpb.SetColor(EyeHighlightColorSid, eyeHighlightColor);
             mpb.SetVector(OutlineParamSid, new Vector4(outlineWidthMin, outlineWidthMax, outlineFadeScale, outlineFadeStrength));
             
             if (!headFace) return;
