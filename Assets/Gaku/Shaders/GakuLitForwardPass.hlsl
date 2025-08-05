@@ -31,15 +31,13 @@ Varyings GakuLitPassVertex(Attributes input)
     UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(output);
 
     VertexPositionInputs vertexInput = GetVertexPositionInputs(input.Position.xyz);
-    VertexNormalInputs normalInput = GetVertexNormalInputs(input.Normal, input.Tangent);
+    output.PositionWS = vertexInput.positionWS;
     output.UV.xy = TRANSFORM_TEX(input.UV0, _BaseMap);
     output.UV.zw = input.UV1.xy;
-
+    VertexNormalInputs normalInput = GetVertexNormalInputs(input.Normal, input.Tangent);
     output.NormalWS = normalInput.normalWS;
-    output.PositionWS = vertexInput.positionWS;
+    output.NormalHeadReflect = mul(_HeadXAxisReflectionMatrix, float4(input.Normal, 0.0f)).xyz; // 얼굴의 X축 대칭 법선
     output.ShadowCoord = GetShadowCoord(vertexInput);
-    // 얼굴의 X축 대칭 법선
-    output.NormalHeadReflect = mul(_HeadXAxisReflectionMatrix, float4(input.Normal, 0.0f)).xyz;
 
     GakuVertexColor VertexColor = DecodeVertexColor(input.Color);
     output.Color1 = VertexColor.OutlineColor;
@@ -194,6 +192,7 @@ half4 GakuLitPassFragment(
     SkinRampedLighting = BaseMap * SkinRampedLighting;
     RampedLighting = lerp(RampedLighting, SkinRampedLighting, ShadeMap.w);
     RampedLighting *= _BaseColor;
+	RampedLighting = IsEyeHightLight ? RampedLighting * _EyeHighlightColor : RampedLighting;
     
 	BRDFData brdfData = InitializeGakuBRDFData(RampedLighting, Smoothness, Metallic, SpecularIntensity, IsEye);
     
