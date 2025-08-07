@@ -1,5 +1,6 @@
 using UnityEngine;
 using UnityEngine.Rendering;
+using UnityEngine.Rendering.RenderGraphModule;
 using UnityEngine.Rendering.Universal;
 
 namespace Gaku
@@ -31,12 +32,76 @@ namespace Gaku
             Shader.PropertyToID("_GlobalLightingOverrideDirection");
 
         private static readonly int EnableACESCounterSid = Shader.PropertyToID("_EnableACESCounter");
-
         private static readonly int GlobalMainLightDirVSSid = Shader.PropertyToID("_GlobalMainLightDirVS");
         private static readonly int SkinSaturationSid = Shader.PropertyToID("_SkinSaturation");
 
-        private Vector3 lightOriginDir = new(0, 0, -1);
+        private static Vector3 lightOriginDir = new(0, 0, -1);
         private Texture cachedReflectionProbe;
+
+        private class PassData
+        {
+            public GakuSetParametersContext gakuSetParametersContext;
+        }
+
+        // 카메라/볼륨 등을 묶는 읽기 전용 구조체
+        readonly struct GakuSetParametersContext
+        {
+            public readonly UniversalLightData LightData;
+            public readonly Camera Camera;
+            public readonly bool PostProcessEnabled;
+            public readonly GakuVolume GakuVolume;
+            public readonly Tonemapping Tonemapping;
+
+            public GakuSetParametersContext(UniversalLightData lightData, Camera camera, bool postProcessEnabled, GakuVolume gakuVolume, Tonemapping tonemapping)
+            {
+                this.LightData = lightData;
+                this.Camera = camera;
+                this.PostProcessEnabled = postProcessEnabled;
+                this.GakuVolume = gakuVolume;
+                this.Tonemapping = tonemapping;
+            }
+        }
+        private static void SetGlobalVolumeParams(RasterGraphContext context, in GakuSetParametersContext passData)
+        {
+            var cmd = context.cmd;
+            var gakuVolume = passData.GakuVolume;
+            
+            cmd.SetGlobalFloat(SkinSaturationSid, gakuVolume._SkinSaturation.value);
+
+            cmd.SetGlobalColor(GlobalLightingOverrideColorSid,
+                gakuVolume._GlobalLightingOverrideColor.value);
+            cmd.SetGlobalFloat(GlobalLightingOverrideRatioSid,
+                gakuVolume._GlobalLightingOverrideRatio.value);
+            if (gakuVolume._GlobalLightingOverrideDirection.overrideState)
+            {
+                cmd.SetGlobalFloat(GlobalLightingOverrideDirectionEnabledSid, 1f);
+                cmd.SetGlobalVector(GlobalLightingOverrideDirectionSid,
+                    Quaternion.Euler(gakuVolume._GlobalLightingOverrideDirection.value) * lightOriginDir);
+            }
+            else
+            {
+                cmd.SetGlobalFloat(GlobalLightingOverrideDirectionEnabledSid, 0f);
+            }
+        }
+
+        private static void SetGlobalShaderParams(RasterGraphContext context, in GakuSetParametersContext passData)
+        {
+            var cmd = context.cmd;
+            var tonemapping = passData.Tonemapping;
+            
+            cmd.SetGlobalFloat(EnableACESCounterSid,
+                passData.PostProcessEnabled && tonemapping && tonemapping.mode.value == TonemappingMode.ACES
+                    ? 1
+                    : 0);
+            var mainLightIndex = passData.LightData.mainLightIndex;
+            if (mainLightIndex >= 0)
+            {
+                var mainLight = passData.LightData.visibleLights[mainLightIndex];
+                var mainLightDirWS = mainLight.light.transform.forward;
+                var mainLightDirVS = passData.Camera.worldToCameraMatrix.MultiplyVector(mainLightDirWS);
+                cmd.SetGlobalVector(GlobalMainLightDirVSSid, -mainLightDirVS);
+            }
+        }
 
         public override void OnCameraSetup(CommandBuffer cmd, ref RenderingData renderingData)
         {
