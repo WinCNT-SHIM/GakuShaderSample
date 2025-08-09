@@ -61,6 +61,41 @@ namespace Gaku
                 this.Tonemapping = tonemapping;
             }
         }
+
+        public override void RecordRenderGraph(RenderGraph renderGraph, ContextContainer frameData)
+        {
+            var lightData = frameData.Get<UniversalLightData>();
+            var cameraData = frameData.Get<UniversalCameraData>();
+            var camera = cameraData.camera;
+            var postProcessingEnabled = cameraData.postProcessEnabled;
+
+            var volumeStack = VolumeManager.instance.stack;
+            var customVolume = volumeStack.GetComponent<GakuVolume>();
+            var customTonemapping = volumeStack.GetComponent<Tonemapping>();
+
+            using (var builder = renderGraph.AddRasterRenderPass<PassData>(nameof(GakuSetParametersPass), out var passData))
+            {
+                // 전역 셰이더 상태만 바꾸는 패스라면 컬링 방지 & 글로벌 상태 변경 가능 표시
+                // 리소스를 선언하지 않고 부수 효과만 일으키는 패스는 기본적으로 컬링될 수 있으므로 필요
+                builder.AllowPassCulling(false);
+                builder.AllowGlobalStateModification(true);
+                // 필요한 데이터 설정
+                passData.gakuSetParametersContext = new GakuSetParametersContext(lightData , camera, postProcessingEnabled, customVolume, customTonemapping);
+                // 실행할 패스 등록
+                builder.SetRenderFunc((PassData data, RasterGraphContext context) => ExecutePass(data, context));
+            }
+        }
+        
+        private void ExecutePass(PassData passData, RasterGraphContext graphContext)
+        {
+            SetGlobalShaderParams(graphContext, in passData.gakuSetParametersContext);
+            if (gakuVolume.active)
+            {
+                SetGlobalVolumeParams(graphContext, in passData.gakuSetParametersContext);
+                // SetSceneAmbientLighting();
+            }
+        }
+
         private static void SetGlobalVolumeParams(RasterGraphContext context, in GakuSetParametersContext passData)
         {
             var cmd = context.cmd;
