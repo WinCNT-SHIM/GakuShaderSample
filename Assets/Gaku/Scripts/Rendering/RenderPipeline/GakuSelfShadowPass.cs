@@ -32,6 +32,14 @@ namespace Gaku
             public bool useNdotLFix = true;
         }
 
+        private static readonly int GakuSelfShadowMapRTSid = Shader.PropertyToID(GakuSelfShadowMapRT);
+        private static readonly int GakuSelfShadowRangeSid = Shader.PropertyToID("_GakuSelfShadowRange");
+        private static readonly int GakuSelfShadowWorldToClipSid = Shader.PropertyToID("_GakuSelfShadowWorldToClip");
+        private static readonly int GakuSelfShadowParamSid = Shader.PropertyToID("_GakuSelfShadowParam");
+        private static readonly int GakuGlobalSelfShadowDepthBiasSid = Shader.PropertyToID("_GakuGlobalSelfShadowDepthBias");
+        private static readonly int GakuSelfShadowLightDirectionSid = Shader.PropertyToID("_GakuSelfShadowLightDirection");
+        private static readonly int GakuSelfShadowUseNdotLFixSid = Shader.PropertyToID("_GakuSelfShadowUseNdotLFix");
+
         private readonly SelfShadowSettings settings;
         private const string GakuEnableSelfShadowKeyword = "_ENABLE_GAKU_SELF_SHADOW";
         private const string GakuSelfShadowMapRT = "_GakuSelfShadowMapRT";
@@ -41,14 +49,6 @@ namespace Gaku
         private Plane[] cullingPlanes = new Plane[6];
         private readonly RTHandle shadowMapRTHandle;
         private static readonly Vector3 charaBoundSize = new(0.75f, 1.5f, 0.5f);
-        
-        private static readonly int GakuSelfShadowMapRTSid = Shader.PropertyToID(GakuSelfShadowMapRT);
-        private static readonly int GakuSelfShadowRangeSid = Shader.PropertyToID("_GakuSelfShadowRange");
-        private static readonly int GakuSelfShadowWorldToClipSid = Shader.PropertyToID("_GakuSelfShadowWorldToClip");
-        private static readonly int GakuSelfShadowParamSid = Shader.PropertyToID("_GakuSelfShadowParam");
-        private static readonly int GakuGlobalSelfShadowDepthBiasSid = Shader.PropertyToID("_GakuGlobalSelfShadowDepthBias");
-        private static readonly int GakuSelfShadowLightDirectionSid = Shader.PropertyToID("_GakuSelfShadowLightDirection");
-        private static readonly int GakuSelfShadowUseNdotLFixSid = Shader.PropertyToID("_GakuSelfShadowUseNdotLFix");
 
         // 생성자
         public GakuSelfShadowPass(SelfShadowSettings settings)
