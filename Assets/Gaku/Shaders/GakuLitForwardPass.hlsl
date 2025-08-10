@@ -175,7 +175,9 @@ half4 GakuLitPassFragment(
     // float FaceNoL = dot(NormalHeadMatS, mainLight.direction);
     float FaceNoL = dot(input.NormalHeadReflect, mainLight.direction);
     // float FaceLighting = saturate((FaceNoL + DiffuseOffset - _MatCapParam.x) * 0.5f + 0.5f);
-    float FaceLighting = saturate((FaceNoL + DiffuseOffset) * 0.5f + 0.5f);
+    // N dot L의 X축 대칭인 얼굴용 N dot L 
+    float FaceLighting = saturate((FaceNoL + (DiffuseOffset - 0.025)) * 0.5f + 0.5f);
+    // N dot L과 얼굴용 N dot L 중에서 마스크된 부분 중 밝은 부분을 획득!
     FaceLighting = max(FaceLighting, BaseLighting);
     FaceLighting = lerp(BaseLighting, FaceLighting, DefMetallic);
     
