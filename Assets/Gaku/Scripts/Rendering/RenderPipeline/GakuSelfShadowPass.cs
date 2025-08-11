@@ -32,6 +32,11 @@ namespace Gaku
             public bool useNdotLFix = true;
         }
 
+        private class PassData
+        {
+            
+        }
+
         private static readonly int GakuSelfShadowMapRTSid = Shader.PropertyToID(GakuSelfShadowMapRT);
         private static readonly int GakuSelfShadowRangeSid = Shader.PropertyToID("_GakuSelfShadowRange");
         private static readonly int GakuSelfShadowWorldToClipSid = Shader.PropertyToID("_GakuSelfShadowWorldToClip");
