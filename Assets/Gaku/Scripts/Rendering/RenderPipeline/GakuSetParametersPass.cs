@@ -44,7 +44,7 @@ namespace Gaku
         }
 
         // 카메라/볼륨 등을 묶는 읽기 전용 구조체
-        readonly struct GakuSetParametersContext
+        private readonly struct GakuSetParametersContext
         {
             public readonly UniversalLightData LightData;
             public readonly Camera Camera;
