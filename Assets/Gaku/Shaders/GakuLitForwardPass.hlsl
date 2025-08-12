@@ -230,7 +230,7 @@ half4 GakuLitPassFragment(
     Specular += SpecularTerm * SpecularColor;
     Specular += MatCapReflection;
     Specular *= SpecularIntensity;
-	Specular = lerp(Specular, Specular * RampAddColor, RampAddMap.w);
+	Specular = lerp(Specular, Specular * RampAddColor, RampAddMap.a);
 
     float3 SH = SampleSH(NormalWS);
     float3 SkyLight = max(SH, 0) * brdfData.diffuse * 0.25; // _GlobalLightParameter.x
