@@ -23,7 +23,8 @@ namespace Gaku
         public class SelfShadowSettings
         {
             public bool enableSelfShadowPass = true;
-            [FormerlySerializedAs("useMainLightSelfShadowDir")] [FormerlySerializedAs("useMainLightAsSelfShadowDir")] [FormerlySerializedAs("useMainLightAsCastShadowDirection")] public bool useMainLightForSelfShadowDir = false;
+            public bool useMainLightForSelfShadowDir = false;
+
             [Range(0f, 45f)] public float shadowAngle = 15f;
             [Range(0.1f, 2f)] public float boundSize = 1f;
             public ShadowMapSize shadowMapSize = ShadowMapSize.VeryHigh;
