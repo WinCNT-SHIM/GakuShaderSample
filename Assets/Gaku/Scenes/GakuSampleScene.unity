@@ -129,7 +129,7 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: 4718578134374647493, guid: 0cc7725892a73dc4899c7ce8a2a7580d, type: 3}
       propertyPath: m_Name
-      value: Chara_Fujita_Kotone_Yellow_Big_Bang
+      value: Chara_Fujita_Kotone_2
       objectReference: {fileID: 0}
     - target: {fileID: 7317692536119206517, guid: 0cc7725892a73dc4899c7ce8a2a7580d, type: 3}
       propertyPath: m_LocalPosition.x
@@ -347,7 +347,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 4135610746081253887, guid: fece06bf44201ac48b5a8be6143ccff1, type: 3}
       propertyPath: m_Name
-      value: Chara_Fujita_Kotone_Casual
+      value: Chara_Fujita_Kotone_1
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -714,6 +714,6 @@ SceneRoots:
   - {fileID: 203844589}
   - {fileID: 1510876558}
   - {fileID: 1842655357}
-  - {fileID: 130550751}
   - {fileID: 851490218}
+  - {fileID: 130550751}
   - {fileID: 1890928271}
