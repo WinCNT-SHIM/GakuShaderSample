@@ -1,6 +1,7 @@
 using System;
 using UnityEngine;
 using UnityEngine.Rendering;
+using UnityEngine.Rendering.RenderGraphModule;
 using UnityEngine.Rendering.Universal;
 using UnityEngine.Serialization;
 
@@ -35,6 +36,11 @@ namespace Gaku
 
         private class PassData
         {
+            public GakuSelfShadowContext gakuSelfShadowContext;
+        }
+
+        private readonly struct GakuSelfShadowContext
+        {
             
         }
 
@@ -64,6 +70,22 @@ namespace Gaku
             shadowMapRTHandle = RTHandles.Alloc(GakuSelfShadowMapRT, GakuSelfShadowMapRT);
         }
 
+        // 할당된 리소스 정리
+        public override void OnCameraCleanup(CommandBuffer cmd) => cmd.ReleaseTemporaryRT(Shader.PropertyToID(shadowMapRTHandle.name));
+
+        public override void RecordRenderGraph(RenderGraph renderGraph, ContextContainer frameData)
+        {
+            using (var builder = renderGraph.AddRasterRenderPass<PassData>(nameof(GakuSelfShadowPass), out var passData))
+            {
+                // 실행할 패스 등록
+                builder.SetRenderFunc((PassData data, RasterGraphContext context) => ExecutePass(data, context));
+            }
+        }
+
+        private void ExecutePass(PassData passData, RasterGraphContext graphContext)
+        {
+
+        }
         public override void OnCameraSetup(CommandBuffer cmd, ref RenderingData renderingData)
         {
             var shadowMapSize = settings.shadowMapSize;
@@ -84,9 +106,6 @@ namespace Gaku
             ConfigureClear(ClearFlag.Depth, Color.black);
         }
 
-        // 할당된 리소스 정리
-        public override void OnCameraCleanup(CommandBuffer cmd) => cmd.ReleaseTemporaryRT(Shader.PropertyToID(shadowMapRTHandle.name));
-        
         public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
         {
             RenderSelfShadowmapRT(context, renderingData);
