@@ -89,10 +89,31 @@ namespace Gaku
         private void ExecutePass(PassData passData, RasterGraphContext graphContext)
         {
             SetGlobalShaderParams(graphContext, in passData.gakuSetParametersContext);
-            if (gakuVolume.active)
+            
+            var volume = passData.gakuSetParametersContext.GakuVolume;
+            if (volume && volume.active)
             {
                 SetGlobalVolumeParams(graphContext, in passData.gakuSetParametersContext);
                 // SetSceneAmbientLighting();
+            }
+        }
+
+        private static void SetGlobalShaderParams(RasterGraphContext context, in GakuSetParametersContext passData)
+        {
+            var cmd = context.cmd;
+            var tonemapping = passData.Tonemapping;
+            
+            cmd.SetGlobalFloat(EnableACESCounterSid,
+                passData.PostProcessEnabled && tonemapping && tonemapping.mode.value == TonemappingMode.ACES
+                    ? 1
+                    : 0);
+            var mainLightIndex = passData.LightData.mainLightIndex;
+            if (mainLightIndex >= 0)
+            {
+                var mainLight = passData.LightData.visibleLights[mainLightIndex];
+                var mainLightDirWS = mainLight.light.transform.forward;
+                var mainLightDirVS = passData.Camera.worldToCameraMatrix.MultiplyVector(mainLightDirWS);
+                cmd.SetGlobalVector(GlobalMainLightDirVSSid, -mainLightDirVS);
             }
         }
 
@@ -116,25 +137,6 @@ namespace Gaku
             else
             {
                 cmd.SetGlobalFloat(GlobalLightingOverrideDirectionEnabledSid, 0f);
-            }
-        }
-
-        private static void SetGlobalShaderParams(RasterGraphContext context, in GakuSetParametersContext passData)
-        {
-            var cmd = context.cmd;
-            var tonemapping = passData.Tonemapping;
-            
-            cmd.SetGlobalFloat(EnableACESCounterSid,
-                passData.PostProcessEnabled && tonemapping && tonemapping.mode.value == TonemappingMode.ACES
-                    ? 1
-                    : 0);
-            var mainLightIndex = passData.LightData.mainLightIndex;
-            if (mainLightIndex >= 0)
-            {
-                var mainLight = passData.LightData.visibleLights[mainLightIndex];
-                var mainLightDirWS = mainLight.light.transform.forward;
-                var mainLightDirVS = passData.Camera.worldToCameraMatrix.MultiplyVector(mainLightDirWS);
-                cmd.SetGlobalVector(GlobalMainLightDirVSSid, -mainLightDirVS);
             }
         }
 
