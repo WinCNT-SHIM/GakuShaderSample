@@ -36,7 +36,8 @@ Varyings GakuLitPassVertex(Attributes input)
     output.UV.zw = input.UV1.xy;
     VertexNormalInputs normalInput = GetVertexNormalInputs(input.Normal, input.Tangent);
     output.NormalWS = normalInput.normalWS;
-    output.NormalHeadReflect = mul(_HeadXAxisReflectionMatrix, float4(input.Normal, 0.0f)).xyz; // 얼굴의 X축 대칭 법선
+    // 법선을 얼굴 X의 반전 값(즉 Y축에 대칭)되도록 변형
+    output.NormalHeadReflect = mul(_HeadXAxisReflectionMatrix, float4(input.Normal, 0.0f)).xyz;
     output.ShadowCoord = GetShadowCoord(vertexInput);
 
     GakuVertexColor VertexColor = DecodeVertexColor(input.Color);
@@ -175,7 +176,7 @@ half4 GakuLitPassFragment(
     // float FaceNoL = dot(NormalHeadMatS, mainLight.direction);
     float FaceNoL = dot(input.NormalHeadReflect, mainLight.direction);
     // float FaceLighting = saturate((FaceNoL + DiffuseOffset - _MatCapParam.x) * 0.5f + 0.5f);
-    // N dot L의 X축 대칭인 얼굴용 N dot L 
+    // N dot L의 Y축 대칭인 얼굴용 N dot L 
     float FaceLighting = saturate((FaceNoL + (DiffuseOffset - 0.025)) * 0.5f + 0.5f);
     // N dot L과 얼굴용 N dot L 중에서 마스크된 부분 중 밝은 부분을 획득!
     FaceLighting = max(FaceLighting, BaseLighting);

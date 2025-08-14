@@ -94,7 +94,7 @@ namespace Gaku
                 faceUpDirectionWs = GetFaceDirectionWorldSpace(faceUpDirection);
                 facePositionWs = headFace.position + faceUpDirectionWs * headOffset;
                 
-                // 얼굴의 X축 대칭 행렬(Reflection Matrix)
+                // 얼굴의 X의 반전 행렬(Reflection Matrix), 즉 Y축 대칭 행렬을 구한다
                 headXAxisReflectionMatrix = Matrix4x4.identity;
                 headXAxisReflectionMatrix.SetColumn(0, -faceRightDirectionWs);
                 headXAxisReflectionMatrix.SetColumn(1, faceUpDirectionWs);
