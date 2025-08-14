@@ -86,6 +86,22 @@ namespace Gaku
         {
 
         }
+
+        /// <summary>
+        /// 캐릭터의 셀프 쉐도우용 렌더 텍스터를 만든다
+        /// 1. 뷰 행렬, 투영 행렬 만들기
+        /// 2. 캐릭터용 스크립트를 가진 오브젝틀르 대상으로 해서 바운드를 생성해서 붙임
+        /// 3. 부착한 바운드를 기준으로 컬링
+        /// 4. 렌더링
+        /// 5. 원상 복귀도 잊지 말기!
+        /// </summary>
+        /// <param name="context"></param>
+        /// <param name="passData"></param>
+        private void RenderSelfShadowmapRT(RasterGraphContext context, in GakuSelfShadowContext passData)
+        {
+            
+        }
+
         public override void OnCameraSetup(CommandBuffer cmd, ref RenderingData renderingData)
         {
             var shadowMapSize = settings.shadowMapSize;
@@ -98,8 +114,7 @@ namespace Gaku
                 (int)shadowMapSize, (int)shadowMapSize
                 , RenderTextureFormat.Shadowmap, 16);
 
-            cmd.GetTemporaryRT(Shader.PropertyToID(shadowMapRTHandle.name), renderTextureDescriptor,
-                FilterMode.Bilinear);
+            cmd.GetTemporaryRT(Shader.PropertyToID(shadowMapRTHandle.name), renderTextureDescriptor, FilterMode.Bilinear);
             cmd.SetGlobalTexture(GakuSelfShadowMapRTSid, shadowMapRTHandle);
 
             ConfigureTarget(shadowMapRTHandle);
