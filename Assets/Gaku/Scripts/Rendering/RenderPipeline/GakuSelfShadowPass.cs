@@ -34,15 +34,28 @@ namespace Gaku
             public bool useNdotLFix = true;
         }
 
+        /// <summary>
+        /// RenderGraph에 필요한 데이터 보관용
+        /// </summary>
         private class PassData
         {
             public GakuSelfShadowContext gakuSelfShadowContext;
+            public TextureHandle shadowMap;
         }
 
         private readonly struct GakuSelfShadowContext
         {
-            
+            public readonly SelfShadowSettings Settings;
+            public readonly Matrix4x4 WorldToClipMatrix;
+            public readonly Vector4 ShadowParam;
+            public readonly Vector4 LightDirection;
+            public readonly Camera Camera;
+            public readonly int MainLightIndex;
+            public readonly UniversalLightData LightData;
         }
+
+        // True : Render Graph API를 사용 안 함
+        private static bool _enableRenderCompatibilityMode;
 
         private static readonly int GakuSelfShadowMapRTSid = Shader.PropertyToID(GakuSelfShadowMapRT);
         private static readonly int GakuSelfShadowRangeSid = Shader.PropertyToID("_GakuSelfShadowRange");
@@ -65,16 +78,21 @@ namespace Gaku
         // 생성자
         public GakuSelfShadowPass(SelfShadowSettings settings)
         {
+            _enableRenderCompatibilityMode = GraphicsSettings.GetRenderPipelineSettings<RenderGraphSettings>().enableRenderCompatibilityMode;
             profilingSampler = new ProfilingSampler(nameof(GakuSelfShadowPass));
             this.settings = settings;
             shadowMapRTHandle = RTHandles.Alloc(GakuSelfShadowMapRT, GakuSelfShadowMapRT);
         }
 
-        // 할당된 리소스 정리
-        public override void OnCameraCleanup(CommandBuffer cmd) => cmd.ReleaseTemporaryRT(Shader.PropertyToID(shadowMapRTHandle.name));
-
         public override void RecordRenderGraph(RenderGraph renderGraph, ContextContainer frameData)
         {
+            if (!settings.enableSelfShadowPass) return;
+
+            var cameraData = frameData.Get<UniversalCameraData>();
+            var lightData = frameData.Get<UniversalLightData>();
+
+            // GakuSelfShadowContext 준비
+            
             using (var builder = renderGraph.AddRasterRenderPass<PassData>(nameof(GakuSelfShadowPass), out var passData))
             {
                 // 실행할 패스 등록
@@ -125,7 +143,7 @@ namespace Gaku
         {
             RenderSelfShadowmapRT(context, renderingData);
         }
-        
+
         /// <summary>
         /// 캐릭터의 셀프 쉐도우용 렌더 텍스터를 만든다
         /// 1. 뷰 행렬, 투영 행렬 만들기
@@ -159,7 +177,7 @@ namespace Gaku
                                                  * shadowCameraViewMatrix;
                     }
                     else
-                    { 
+                    {
                         // 카메라의 회전만을 고려하거나 메인 라이트가 없을 경우
                         shadowCameraViewMatrix = Matrix4x4.Rotate(Quaternion.Euler(new Vector3(settings.shadowAngle, 0, 0)))
                                                  * camera.worldToCameraMatrix;
@@ -177,7 +195,7 @@ namespace Gaku
                     var visibleCharacterCount = 0;
                     // 카메라 절두체를 생성
                     GeometryUtility.CalculateFrustumPlanes(camera, cameraPlanes);
-                    
+
                     foreach (var character in allCharacters)
                     {
                         if (character == null) continue;
@@ -258,8 +276,10 @@ namespace Gaku
                     cmd.SetGlobalVector(GakuSelfShadowLightDirectionSid, shadowCameraViewMatrix.inverse.MultiplyVector(Vector3.forward));
                     cmd.SetGlobalFloat(GakuSelfShadowUseNdotLFixSid, settings.useNdotLFix ? 1 : 0);
                 }
+
                 CoreUtils.SetKeyword(cmd, GakuEnableSelfShadowKeyword, settings.enableSelfShadowPass);
             }
+
             context.ExecuteCommandBuffer(cmd);
             cmd.Clear();
             CommandBufferPool.Release(cmd);
