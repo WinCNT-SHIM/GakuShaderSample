@@ -107,7 +107,7 @@ namespace Gaku
             {
                 foreach (var charaRenderer in gakuRenderers)
                 {
-                    if (!charaRenderer) return;
+                    if (!charaRenderer) continue;
                     if (lastFrameShouldEditMaterial is false)
                         charaRenderer.SetPropertyBlock(null);
                     
@@ -121,7 +121,7 @@ namespace Gaku
                 materialPropertyBlock ??= new MaterialPropertyBlock();
                 foreach (var charaRenderer in gakuRenderers)
                 {
-                    if (!charaRenderer) return;
+                    if (!charaRenderer) continue;
                     if (charaRenderer.HasPropertyBlock())
                         charaRenderer.GetPropertyBlock(materialPropertyBlock);
                     
