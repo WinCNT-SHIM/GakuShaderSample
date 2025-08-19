@@ -27,6 +27,7 @@ Shader "Gaku/Character/Default"
 		[Toggle(_EMISSION)] _EnableEmission ("Enable Emission", Float) = 0
 		_EmissionMap ("EmissionMap", 2D) = "black" { }
 		[HDR] _EmissionColor ("Emission Color", Color) = (0,0,0,0)
+    	[HideInInspector] _EyeHighlightColor("_EyeHighlight Color", Color) = (0,0,0,0)
 		_RefractThickness ("Refract Thickness", Float) = 0
 		_DefDebugMask ("Def Debug", Float) = 15
 		_SpecularThreshold ("Specular Threshold", Vector) = (0.6,0.05,0,0)
