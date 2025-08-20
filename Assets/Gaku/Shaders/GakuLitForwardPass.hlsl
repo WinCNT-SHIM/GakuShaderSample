@@ -119,7 +119,7 @@ half4 GakuLitPassFragment(
     float3 ViewSide = normalize(cross(ViewDirection, CameraUp));
     float3 ViewUp = normalize(cross(ViewSide, ViewDirection));
     float3x3 WorldToMatcap = float3x3(ViewSide, ViewUp, ViewDirection);
-    float3 NormalMatS = mul(WorldToMatcap, float4(NormalWS, 0.0f));
+    float3 NormalMatS = mul(WorldToMatcap, float4(NormalWS, 0.0f)).xyz;
     
     float DiffuseOffset = DefDiffuse * 2.0f - 1.0f;
     float Smoothness = min(DefSmoothness, 1);
