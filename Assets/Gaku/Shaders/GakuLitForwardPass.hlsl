@@ -5,7 +5,6 @@
 
 void InitializeInputData(Varyings input, half3 normalTS, out GakuInputData inputData)
 {
-    
 }
 
 BRDFData InitializeGakuBRDFData(float3 BaseColor, float Smoothness, float Metallic, float Specular, bool IsEye)
@@ -48,9 +47,9 @@ Varyings GakuLitPassVertex(Attributes input)
         VertexColor.RampAddID,
         VertexColor.RimMask
     );
-    
+
     output.PositionCS = vertexInput.positionCS;
-    
+
     return output;
 }
 
@@ -66,10 +65,10 @@ half4 GakuLitPassFragment(
 {
     UNITY_SETUP_INSTANCE_ID(input);
     UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
-    
+
     // SurfaceData surfaceData;
     // InitializeStandardLitSurfaceData(input.uv, surfaceData);
-    
+
     GakuVertexColor VertexColor;
     VertexColor.OutlineColor = input.Color1;
     VertexColor.OutlineWidth = input.Color2.x;
@@ -82,18 +81,18 @@ half4 GakuLitPassFragment(
     bool IsHair = _ShaderType == 8;
     bool IsFace = _ShaderType == 9;
     bool IsEyeBrow = _ShaderType == 6;
-    
+
     float3 NormalWS = normalize(input.NormalWS);
-	NormalWS = IsFront ? NormalWS : NormalWS * -1.0f;
-    
+    NormalWS = IsFront ? NormalWS : NormalWS * -1.0f;
+
     half3 ViewDirection = GetWorldSpaceNormalizeViewDir(input.PositionWS);
-    
+
     Light mainLight = GetMainLight();
     float NoL = dot(NormalWS, mainLight.direction);
     // float MatCapNoL = dot(NormalMatS, _MatCapMainLight);
     // bool DisableMatCap = _MatCapMainLight.w > 0.5f;
     // NoL = DisableMatCap ? NoL : MatCapNoL;
-    
+
     // float Shadow = MainLightRealtimeShadow(input.ShadowCoord);
     float Shadow = GetSelfShadow(input.PositionWS, NormalWS);
     float ShadowFadeOut = dot(-ViewDirection, -ViewDirection);
@@ -102,10 +101,10 @@ half4 GakuLitPassFragment(
     // Shadow = lerp(Shadow, 1, ShadowFadeOut);
     Shadow = lerp(1.0f, Shadow, _MainLightShadowParams.x);
     Shadow = saturate(Shadow * ((4.0f * Shadow - 6) * Shadow + 3.0f));
-    
+
     half4 BaseMap = SAMPLE_TEXTURE2D(_BaseMap, sampler_BaseMap, input.UV.xy);
     half4 ShadeMap = SAMPLE_TEXTURE2D(_ShadeMap, sampler_ShadeMap, input.UV.xy);
-    
+
     half4 DefMap = _DefValue;
     #if !defined(_DEFMAP_OFF)
     DefMap = SAMPLE_TEXTURE2D(_DefMap, sampler_DefMap, input.UV.xy).xyzw;
@@ -114,49 +113,50 @@ half4 GakuLitPassFragment(
     float DefMetallic = DefMap.z;
     float DefSmoothness = DefMap.y;
     float DefSpecular = DefMap.w;
-    
+
     float3 CameraUp = unity_MatrixV[1].xyz;
     float3 ViewSide = normalize(cross(ViewDirection, CameraUp));
     float3 ViewUp = normalize(cross(ViewSide, ViewDirection));
     float3x3 WorldToMatcap = float3x3(ViewSide, ViewUp, ViewDirection);
     float3 NormalMatS = mul(WorldToMatcap, float4(NormalWS, 0.0f)).xyz;
-    
+
     float DiffuseOffset = DefDiffuse * 2.0f - 1.0f;
     float Smoothness = min(DefSmoothness, 1);
-	float Metallic = IsFace ? 0 : DefMetallic;
-    
+    float Metallic = IsFace ? 0 : DefMetallic;
+
     float SpecularIntensity = min(DefSpecular, Shadow);
-    
+
     if (IsHair)
     {
         // 머리 장신구인지는 UV의 값을 보고 판단
         float IsHairProp = saturate(input.UV.x - 0.75f) * saturate(input.UV.y - 0.75f);
         IsHairProp = IsHairProp != 0;
-        
+
         // float HairSpecular = Pow4(saturate(dot(NormalWorM, ViewDirWorM)));
         float HairSpecular = Pow4(saturate(dot(NormalWS, ViewDirection)));
-        HairSpecular = smoothstep(_SpecularThreshold.x - _SpecularThreshold.y, _SpecularThreshold.x + _SpecularThreshold.y, HairSpecular);
+        HairSpecular = smoothstep(_SpecularThreshold.x - _SpecularThreshold.y,
+                                  _SpecularThreshold.x + _SpecularThreshold.y, HairSpecular);
         HairSpecular *= SpecularIntensity;
         HairSpecular = IsHairProp ? 0 : HairSpecular;
-		
+
         float3 HighlightMap = SAMPLE_TEXTURE2D(_HighlightMap, sampler_HighlightMap, input.UV.xy).xyz;
         BaseMap.xyz = lerp(BaseMap.xyz, HighlightMap.xyz, HairSpecular);
-        
+
         float HairFadeX = dot(_HeadDirection.xyz, ViewDirection);
         HairFadeX = _FadeParam.x - HairFadeX;
         HairFadeX = saturate(HairFadeX * _FadeParam.y);
-        
+
         float HairFadeZ = dot(_HeadUpDirection, ViewDirection);
         HairFadeZ = abs(HairFadeZ) - _FadeParam.z;
         HairFadeZ = saturate(HairFadeZ * _FadeParam.w);
-	
+
         BaseMap.a = lerp(1, max(HairFadeX, HairFadeZ), BaseMap.a);
         SpecularIntensity *= IsHairProp ? 1 : 0;
     }
-    
+
     float4 RampAddMap = 0;
     float3 RampAddColor = 0;
-    
+
     #if defined(_RAMPADD_ON)
     float2 RampAddMapUV = float2(saturate(DiffuseOffset + NormalMatS.z), VertexColor.RampAddID);
     RampAddMap = SAMPLE_TEXTURE2D(_RampAddMap, sampler_RampAddMap, RampAddMapUV);
@@ -166,7 +166,7 @@ half4 GakuLitPassFragment(
     BaseMap.xyz += DiffuseRampAddColor;
     ShadeMap.xyz += DiffuseRampAddColor;
     #endif
-    
+
     float BaseLighting = NoL * 0.5f + 0.5f;
     // BaseLighting = saturate(BaseLighting + (DiffuseOffset - _MatCapParam.x) * 0.5f);
     BaseLighting = saturate(BaseLighting + (DiffuseOffset - 0.025) * 0.5f);
@@ -181,27 +181,27 @@ half4 GakuLitPassFragment(
     // N dot L과 얼굴용 N dot L 중에서 마스크된 부분 중 밝은 부분을 획득!
     FaceLighting = max(FaceLighting, BaseLighting);
     FaceLighting = lerp(BaseLighting, FaceLighting, DefMetallic);
-    
+
     BaseLighting = IsFace ? FaceLighting : BaseLighting;
     BaseLighting = min(BaseLighting, Shadow);
-    
+
     float2 RampMapUV = float2(BaseLighting, 0);
     half4 RampMap = SAMPLE_TEXTURE2D(_RampMap, sampler_RampMap, RampMapUV);
-    
+
     const float ShadowIntensity = 0.55; // _MatCapParam.z? _MatCapParam (0,0,0.5490196,0)
     float3 RampedLighting = lerp(BaseMap.xyz, ShadeMap.xyz * _ShadeMultiplyColor, RampMap.w * ShadowIntensity);
-    float3 SkinRampedLighting =	lerp(RampMap, RampMap.xyz * _ShadeMultiplyColor, RampMap.w);
+    float3 SkinRampedLighting = lerp(RampMap, RampMap.xyz * _ShadeMultiplyColor, RampMap.w);
     SkinRampedLighting = lerp(1, SkinRampedLighting, ShadowIntensity);
     SkinRampedLighting = BaseMap * SkinRampedLighting;
     RampedLighting = lerp(RampedLighting, SkinRampedLighting, ShadeMap.w);
     RampedLighting *= _BaseColor;
-	RampedLighting = IsEyeHightLight ? RampedLighting * _EyeHighlightColor : RampedLighting;
-    
-	BRDFData brdfData = InitializeGakuBRDFData(RampedLighting, Smoothness, Metallic, SpecularIntensity, IsEye);
-    
+    RampedLighting = IsEyeHightLight ? RampedLighting * _EyeHighlightColor : RampedLighting;
+
+    BRDFData brdfData = InitializeGakuBRDFData(RampedLighting, Smoothness, Metallic, SpecularIntensity, IsEye);
+
     float3 IndirectSpecular = 0;
     float3 ReflectVector = reflect(-ViewDirection, NormalWS);
-    
+
     #if defined(_USE_EYE_REFLECTION_TEXTURE)
     float ReflectionTextureMip = PerceptualRoughnessToMipmapLevel(brdfData.perceptualRoughness);
     float3 VLSpecCube = SAMPLE_TEXTURECUBE_LOD(_VLSpecCube, sampler_VLSpecCube, ReflectVector, ReflectionTextureMip);
@@ -225,18 +225,18 @@ half4 GakuLitPassFragment(
 
     half NdotV = saturate(dot(NormalWS, ViewDirection));
     float FresnelTerm = Pow4(1 - saturate(NdotV));
-    float3 SpecularColor =  EnvironmentBRDFSpecular(brdfData, FresnelTerm);
+    float3 SpecularColor = EnvironmentBRDFSpecular(brdfData, FresnelTerm);
     float3 SpecularTerm = DirectBRDFSpecular(brdfData, NormalWS, _MatCapMainLight, ViewDirection);
     float3 Specular = SpecularColor * IndirectSpecular;
     Specular += SpecularTerm * SpecularColor;
     Specular += MatCapReflection;
     Specular *= SpecularIntensity;
-	Specular = lerp(Specular, Specular * RampAddColor, RampAddMap.a);
+    Specular = lerp(Specular, Specular * RampAddColor, RampAddMap.a);
 
     float3 SH = SampleSH(NormalWS);
     float3 SkyLight = max(SH, 0) * brdfData.diffuse * 0.25; // _GlobalLightParameter.x
-    
-    half4 color = half4(1,1,1,1);
+
+    half4 color = half4(1, 1, 1, 1);
     color.rgb = brdfData.diffuse;
     color.rgb += Specular;
     color.rgb += SkyLight;
@@ -248,13 +248,13 @@ half4 GakuLitPassFragment(
     #ifdef _ALPHAPREMULTIPLY_ON
     color *= alpha;
     #endif
-    
+
     return color;
-    
+
     // outColor.rgb = brdfData.diffuse;
     // outColor.rgb += Specular;
     // outColor.rgb += SkyLight;
     // outColor.rgb += RampMap.w * _ShadeAdditiveColor;
-    
+
     // OutLighting += RimLightColor;
 }
