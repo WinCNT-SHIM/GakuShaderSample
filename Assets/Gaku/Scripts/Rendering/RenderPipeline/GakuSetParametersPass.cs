@@ -62,6 +62,7 @@ namespace Gaku
             }
         }
 
+        public void Dispose() => cachedReflectionProbe = null;
         public override void RecordRenderGraph(RenderGraph renderGraph, ContextContainer frameData)
         {
             var lightData = frameData.Get<UniversalLightData>();
@@ -228,11 +229,6 @@ namespace Gaku
 
             if (gakuVolume.SH2.overrideState)
                 RenderSettings.ambientProbe = gakuVolume.SH2.value;
-        }
-
-        public void Dispose()
-        {
-            cachedReflectionProbe = null;
         }
     }
 }
