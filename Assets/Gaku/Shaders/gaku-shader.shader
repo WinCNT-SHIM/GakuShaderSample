@@ -121,7 +121,7 @@ Shader "Gaku/Character/Default"
             // #pragma multi_compile_fragment _ _DBUFFER_MRT1 _DBUFFER_MRT2 _DBUFFER_MRT3
             // #pragma multi_compile_fragment _ _LIGHT_COOKIES
             // #pragma multi_compile _ _LIGHT_LAYERS
-            // #pragma multi_compile _ _CLUSTER_LIGHT_LOOP
+            #pragma multi_compile _ _CLUSTER_LIGHT_LOOP // _FORWARD_PLUS(6000.0)
 
             // -------------------------------------
             // Gaku keywords
@@ -165,7 +165,7 @@ Shader "Gaku/Character/Default"
 
                 VertexPositionInputs vertexInput = GetVertexPositionInputs(input.Position.xyz);
                 // 탄젠트에 부드러운 노멀 값이 담겨있음
-                float3 SmoothNormalWS = TransformObjectToWorldNormal(input.Tangent);
+                float3 SmoothNormalWS = TransformObjectToWorldNormal(input.Tangent.xyz);
                 float3 PositionWS = vertexInput.positionWS;
 
                 // 버텍스 컬러에 아웃라인에 관한 정보가 담겨있음
