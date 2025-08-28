@@ -26,7 +26,7 @@ float GetSelfShadow(float3 positionWS, float3 normalWS)
     shadowSamplingData.shadowmapSize = _GakuSelfShadowParam;
     shadowSamplingData.shadowOffset0 = float4(-_GakuSelfShadowParam.x, -_GakuSelfShadowParam.y, _GakuSelfShadowParam.x, -_GakuSelfShadowParam.y);
     shadowSamplingData.shadowOffset1 = float4(-_GakuSelfShadowParam.x, _GakuSelfShadowParam.y, _GakuSelfShadowParam.x, _GakuSelfShadowParam.y);
-    
+
     // 셀프 쉐도우 맵을 샘플링
     #if defined(_SHADOWS_SOFT_LOW)
     attenuation = SampleShadowmapFilteredLowQuality(TEXTURE2D_SHADOW_ARGS(_GakuSelfShadowMapRT, sampler_GakuSelfShadowMapRT), selfShadowCoord, shadowSamplingData);
@@ -45,7 +45,7 @@ float GetSelfShadow(float3 positionWS, float3 normalWS)
 
     // // 카툰 렌더링에서 좀 더 그림자 경계를 깔끔하게 출력하기 위한 Magic Number~지만 일단 생략
     // attenuation = smoothstep(0.15, 0.3, attenuation);
-    
+
     // 내적으로 인한 보정
     attenuation *= _GakuSelfShadowUseNdotLFix ? smoothstep(0.1, 0.2, saturate(dot(normalWS, _GakuSelfShadowLightDirection))) : 1;
     
