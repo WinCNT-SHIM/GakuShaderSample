@@ -118,7 +118,7 @@ half4 GakuLitPassFragment(
     float3 ViewSide = normalize(cross(ViewDirection, CameraUp));
     float3 ViewUp = normalize(cross(ViewSide, ViewDirection));
     float3x3 WorldToMatcap = float3x3(ViewSide, ViewUp, ViewDirection);
-    float3 NormalMatS = mul(WorldToMatcap, float4(NormalWS, 0.0f)).xyz;
+    float3 NormalMatS = mul(WorldToMatcap, NormalWS);
 
     float DiffuseOffset = DefDiffuse * 2.0f - 1.0f;
     float Smoothness = min(DefSmoothness, 1);
@@ -146,7 +146,7 @@ half4 GakuLitPassFragment(
         HairFadeX = _FadeParam.x - HairFadeX;
         HairFadeX = saturate(HairFadeX * _FadeParam.y);
 
-        float HairFadeZ = dot(_HeadUpDirection, ViewDirection);
+        float HairFadeZ = dot(_HeadUpDirection.xyz, ViewDirection);
         HairFadeZ = abs(HairFadeZ) - _FadeParam.z;
         HairFadeZ = saturate(HairFadeZ * _FadeParam.w);
 
@@ -189,8 +189,8 @@ half4 GakuLitPassFragment(
     half4 RampMap = SAMPLE_TEXTURE2D(_RampMap, sampler_RampMap, RampMapUV);
 
     const float ShadowIntensity = 0.55; // _MatCapParam.z? _MatCapParam (0,0,0.5490196,0)
-    float3 RampedLighting = lerp(BaseMap.xyz, ShadeMap.xyz * _ShadeMultiplyColor, RampMap.w * ShadowIntensity);
-    float3 SkinRampedLighting = lerp(RampMap, RampMap.xyz * _ShadeMultiplyColor, RampMap.w);
+    float3 RampedLighting = lerp(BaseMap, ShadeMap * _ShadeMultiplyColor, RampMap.w * ShadowIntensity).xyz;
+    float3 SkinRampedLighting = lerp(RampMap, RampMap * _ShadeMultiplyColor, RampMap.w);
     SkinRampedLighting = lerp(1, SkinRampedLighting, ShadowIntensity);
     SkinRampedLighting = BaseMap * SkinRampedLighting;
     RampedLighting = lerp(RampedLighting, SkinRampedLighting, ShadeMap.w);
@@ -226,7 +226,7 @@ half4 GakuLitPassFragment(
     half NdotV = saturate(dot(NormalWS, ViewDirection));
     float FresnelTerm = Pow4(1 - saturate(NdotV));
     float3 SpecularColor = EnvironmentBRDFSpecular(brdfData, FresnelTerm);
-    float3 SpecularTerm = DirectBRDFSpecular(brdfData, NormalWS, _MatCapMainLight, ViewDirection);
+    float3 SpecularTerm = DirectBRDFSpecular(brdfData, NormalWS, _MatCapMainLight.xyz, ViewDirection);
     float3 Specular = SpecularColor * IndirectSpecular;
     Specular += SpecularTerm * SpecularColor;
     Specular += MatCapReflection;
@@ -245,16 +245,13 @@ half4 GakuLitPassFragment(
     #if defined(_ALPHATEST_ON)
     clip(alpha - _ClipValue);
     #endif
+
     #ifdef _ALPHAPREMULTIPLY_ON
     color *= alpha;
     #endif
-
-    return color;
-
-    // outColor.rgb = brdfData.diffuse;
-    // outColor.rgb += Specular;
-    // outColor.rgb += SkyLight;
+    
     // outColor.rgb += RampMap.w * _ShadeAdditiveColor;
 
     // OutLighting += RimLightColor;
+    return color;
 }
