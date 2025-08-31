@@ -189,8 +189,8 @@ half4 GakuLitPassFragment(
     half4 RampMap = SAMPLE_TEXTURE2D(_RampMap, sampler_RampMap, RampMapUV);
 
     const float ShadowIntensity = 0.55; // _MatCapParam.z? _MatCapParam (0,0,0.5490196,0)
-    float3 RampedLighting = lerp(BaseMap, ShadeMap * _ShadeMultiplyColor, RampMap.w * ShadowIntensity).xyz;
-    float3 SkinRampedLighting = lerp(RampMap, RampMap * _ShadeMultiplyColor, RampMap.w);
+    float3 RampedLighting = lerp(BaseMap, ShadeMap * _ShadeMultiplyColor, RampMap.w * ShadowIntensity).rgb;
+    float3 SkinRampedLighting = lerp(RampMap, RampMap * _ShadeMultiplyColor, RampMap.w).rgb;
     SkinRampedLighting = lerp(1, SkinRampedLighting, ShadowIntensity);
     SkinRampedLighting = BaseMap * SkinRampedLighting;
     RampedLighting = lerp(RampedLighting, SkinRampedLighting, ShadeMap.w);
@@ -223,8 +223,8 @@ half4 GakuLitPassFragment(
     MatCapReflection = ReflectionSphereMap.xyz;
     #endif
 
-    half NdotV = saturate(dot(NormalWS, ViewDirection));
-    float FresnelTerm = Pow4(1 - saturate(NdotV));
+    half NoV = saturate(dot(NormalWS, ViewDirection));
+    float FresnelTerm = Pow4(1 - saturate(NoV));
     float3 SpecularColor = EnvironmentBRDFSpecular(brdfData, FresnelTerm);
     float3 SpecularTerm = DirectBRDFSpecular(brdfData, NormalWS, _MatCapMainLight.xyz, ViewDirection);
     float3 Specular = SpecularColor * IndirectSpecular;
