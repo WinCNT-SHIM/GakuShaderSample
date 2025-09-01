@@ -63,6 +63,7 @@ namespace Gaku
         }
 
         public void Dispose() => cachedReflectionProbe = null;
+
         public override void RecordRenderGraph(RenderGraph renderGraph, ContextContainer frameData)
         {
             var lightData = frameData.Get<UniversalLightData>();
@@ -89,6 +90,8 @@ namespace Gaku
         
         private void ExecutePass(PassData passData, RasterGraphContext graphContext)
         {
+            SetAdditionalLightKeywords(graphContext, passData.gakuSetParametersContext);
+
             SetGlobalShaderParams(graphContext, in passData.gakuSetParametersContext);
             
             var volume = passData.gakuSetParametersContext.GakuVolume;
@@ -97,6 +100,20 @@ namespace Gaku
                 SetGlobalVolumeParams(graphContext, in passData.gakuSetParametersContext);
                 // SetSceneAmbientLighting();
             }
+        }
+
+        private static void SetAdditionalLightKeywords(RasterGraphContext context, in GakuSetParametersContext passData)
+        {
+            var cmd = context.cmd;
+
+            var mode  = UniversalRenderPipeline.asset.additionalLightsRenderingMode; // PerPixel / PerVertex / Disabled
+            var count = passData.LightData.additionalLightsCount;
+
+            var perPixel  = (mode == LightRenderingMode.PerPixel)  && (count > 0);
+            var perVertex = (mode == LightRenderingMode.PerVertex) && (count > 0);
+
+            CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.AdditionalLightsPixel, perPixel);   // _ADDITIONAL_LIGHTS
+            CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.AdditionalLightsVertex, perVertex);  // _ADDITIONAL_LIGHTS_VERTEX
         }
 
         private static void SetGlobalShaderParams(RasterGraphContext context, in GakuSetParametersContext passData)
@@ -153,6 +170,8 @@ namespace Gaku
             var cmd = CommandBufferPool.Get();
             using (new ProfilingScope(cmd, profilingSampler))
             {
+                SetAdditionalLightKeywords(renderingData, cmd);
+
                 var camera = renderingData.cameraData.camera;
                 SetGlobalShaderParams(renderingData, cmd, camera);
 
@@ -165,6 +184,18 @@ namespace Gaku
 
             context.ExecuteCommandBuffer(cmd);
             CommandBufferPool.Release(cmd);
+        }
+
+        private static void SetAdditionalLightKeywords(RenderingData renderingData, CommandBuffer cmd)
+        {
+            var mode  = UniversalRenderPipeline.asset.additionalLightsRenderingMode; // PerPixel / PerVertex / Disabled
+            var count = renderingData.lightData.additionalLightsCount;
+
+            var perPixel  = (mode == LightRenderingMode.PerPixel)  && (count > 0);
+            var perVertex = (mode == LightRenderingMode.PerVertex) && (count > 0);
+
+            CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.AdditionalLightsPixel, perPixel);   // _ADDITIONAL_LIGHTS
+            CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.AdditionalLightsVertex, perVertex);  // _ADDITIONAL_LIGHTS_VERTEX
         }
 
         private void SetGlobalShaderParams(RenderingData renderingData, CommandBuffer cmd, Camera camera)
