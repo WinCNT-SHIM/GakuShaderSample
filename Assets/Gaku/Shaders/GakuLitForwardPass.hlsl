@@ -82,6 +82,11 @@ half4 GakuLitPassFragment(
     bool IsFace = _ShaderType == 9;
     bool IsEyeBrow = _ShaderType == 6;
 
+    InputData inputData = (InputData)0;
+    inputData.positionWS = input.PositionWS;
+    inputData.normalWS = input.NormalWS;
+    inputData.viewDirectionWS = GetWorldSpaceNormalizeViewDir(input.PositionWS);
+    inputData.normalizedScreenSpaceUV = GetNormalizedScreenSpaceUV(input.PositionCS);
     float3 NormalWS = normalize(input.NormalWS);
     NormalWS = IsFront ? NormalWS : NormalWS * -1.0f;
 
@@ -239,6 +244,46 @@ half4 GakuLitPassFragment(
     half4 color = half4(1, 1, 1, 1);
     color.rgb = brdfData.diffuse;
     color.rgb += Specular;
+    color.rgb *= mainLight.color;
+
+    half3 AdditionalLighting = 0;
+#if defined(_ADDITIONAL_LIGHTS)
+
+#if USE_CLUSTER_LIGHT_LOOP
+    UNITY_LOOP for (uint lightIndex = 0; lightIndex < min(URP_FP_DIRECTIONAL_LIGHTS_COUNT, MAX_VISIBLE_LIGHTS); lightIndex++)
+    {
+        Light AdditionalLight = GetAdditionalLight(lightIndex, input.PositionWS, half4(1,1,1,1));
+        float Radiance = max(dot(NormalWS, AdditionalLight.direction), 0);
+        Radiance = (Radiance * 0.5f + 0.5f) * 2.356194f;
+        // Radiance = smoothstep(_MatCapParam.x - 0.000488f, _MatCapParam.x + 0.001464f, Radiance);
+        Radiance = smoothstep(0.025 - 0.000488f, 0.025 + 0.001464f, Radiance);
+        Radiance = saturate(Radiance + ShadowIntensity);
+        Radiance *= AdditionalLight.distanceAttenuation;
+    
+        float3 Lighting = Radiance * AdditionalLight.color;
+        float3 AdditionalSpecular = DirectBRDFSpecular(brdfData, NormalWS, AdditionalLight.direction, ViewDirection);
+        AdditionalSpecular *= SpecularColor * _GlobalLightParameter.z;
+        AdditionalLighting += Lighting * (color + AdditionalSpecular);
+    }
+#endif
+
+    uint pixelLightCount = GetAdditionalLightsCount();
+
+    LIGHT_LOOP_BEGIN(pixelLightCount)
+    Light AdditionalLight = GetAdditionalLight(lightIndex, input.PositionWS);
+    float Radiance = max(dot(NormalWS, AdditionalLight.direction), 0);
+    Radiance = (Radiance * 0.5f + 0.5f) * 2.356194f;
+    // Radiance = smoothstep(_MatCapParam.x - 0.000488f, _MatCapParam.x + 0.001464f, Radiance);
+    Radiance = smoothstep(0.025 - 0.000488f, 0.025 + 0.001464f, Radiance);
+    Radiance = saturate(Radiance + ShadowIntensity);
+    Radiance *= AdditionalLight.distanceAttenuation;
+    
+    float3 Lighting = Radiance * AdditionalLight.color;
+    float3 AdditionalSpecular = DirectBRDFSpecular(brdfData, NormalWS, AdditionalLight.direction, ViewDirection);
+    AdditionalSpecular *= SpecularColor * _GlobalLightParameter.z;
+    AdditionalLighting += Lighting * (color + AdditionalSpecular);
+    LIGHT_LOOP_END
+#endif
     color.rgb += SkyLight;
 
     float alpha = BaseMap.a * _MultiplyColor.a;
