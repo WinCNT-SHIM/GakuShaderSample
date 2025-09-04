@@ -20,9 +20,9 @@ namespace Gaku
         [SerializeField] private Transform headFace;
         public Transform HeadFace => headFace;
         
-        [Header("얼굴 Transform Gizmo")]
+        [Header("Face Transform Gizmo")]
         [SerializeField] private bool isDrawGizmo = true;
-        [Header("얼굴 Transform 방향")]
+        [Header("Face Transform Direction")]
         [SerializeField] private TransformDirection faceRightDirection   = TransformDirection.X;
         [SerializeField] private TransformDirection faceUpDirection      = TransformDirection.Y;
         [SerializeField] private TransformDirection faceForwardDirection = TransformDirection.Z;
