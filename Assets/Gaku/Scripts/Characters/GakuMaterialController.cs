@@ -37,13 +37,13 @@ namespace Gaku
         // 거리 보간 계수 설정 (거리 기반으로 0→1 보간될 때 쓰이는 값)
         [SerializeField][Range(0f, 10f)] private float outlineFadeScale = 0.02f;
         [SerializeField][Range(0f, 10f)] private float outlineFadeStrength = 1.0f;
-        
+
         private List<Renderer> gakuRenderers = new();
         private MaterialPropertyBlock materialPropertyBlock;
         private readonly List<Material> tempMaterialList = new();
         private bool? lastFrameShouldEditMaterial;
         private GakuMaterialController gakuMaterialController;
-        
+
         private Vector3 faceForwardDirectionWs;
         private Vector3 faceUpDirectionWs;
         private Vector3 faceRightDirectionWs;
@@ -63,16 +63,16 @@ namespace Gaku
             AddCharacterListToRendererFeature();
             gakuMaterialController = GetCharacterMaterialController();
         }
-        
+
         private void OnDisable() => RemoveCharacterListToRendererFeature();
-        
+
         private void OnDestroy()
         {
             if (!Application.isPlaying) return;
             foreach (var material in gakuRenderers.SelectMany(r => r.materials))
                 Destroy(material);
         }
-        
+
         public Vector3 GetPelvisPosition() => pelvis ? pelvis.position : transform.position + Vector3.up * 0.75f;
 
         private void LateUpdate()
@@ -101,7 +101,7 @@ namespace Gaku
                 headXAxisReflectionMatrix.SetColumn(2, faceForwardDirectionWs);
                 headXAxisReflectionMatrix.SetColumn(3, new Vector4(0, 0, 0, 1));
             }
-            
+
             var shouldEditMaterial = Application.isPlaying;
             if (shouldEditMaterial)
             {
@@ -110,7 +110,7 @@ namespace Gaku
                     if (!charaRenderer) continue;
                     if (lastFrameShouldEditMaterial is false)
                         charaRenderer.SetPropertyBlock(null);
-                    
+
                     charaRenderer.GetMaterials(tempMaterialList);
                     foreach (var material in tempMaterialList)
                         UpdateMaterial(material);
@@ -131,34 +131,34 @@ namespace Gaku
             }
             lastFrameShouldEditMaterial = shouldEditMaterial;
         }
-        
+
         private void AddCharacterListToRendererFeature()
         {
             var renderFeature = GakuRendererFeature.Instance;
             if (!renderFeature) return;
             renderFeature.AddCharacterToList(this);
         }
-        
+
         private GakuMaterialController GetCharacterMaterialController()
         {
             if (!transform.parent) return null;
             var controller = transform.parent.GetComponentsInChildren<GakuMaterialController>().FirstOrDefault();
             return controller;
         }
-        
+
         private void RemoveCharacterListToRendererFeature()
         {
             var renderFeature = GakuRendererFeature.Instance;
             if (!renderFeature) return;
             renderFeature.RemoveCharacterFromList(this);
         }
-        
+
         private void UpdateMaterial(Material material)
         {
             material.SetColor(ShadeMultiplyColorSid, shadeMultiplyColor); 
             material.SetColor(EyeHighlightColorSid, eyeHighlightColor); 
             material.SetVector(OutlineParamSid, new Vector4(outlineWidthMin, outlineWidthMax, outlineFadeScale, outlineFadeStrength));
-            
+
             if (!headFace) return;
             material.SetVector(HeadDirectionSid, faceForwardDirectionWs);
             material.SetVector(HeadUpDirectionSid, faceUpDirectionWs);
@@ -170,13 +170,13 @@ namespace Gaku
             mpb.SetColor(ShadeMultiplyColorSid, shadeMultiplyColor); 
             mpb.SetColor(EyeHighlightColorSid, eyeHighlightColor);
             mpb.SetVector(OutlineParamSid, new Vector4(outlineWidthMin, outlineWidthMax, outlineFadeScale, outlineFadeStrength));
-            
+
             if (!headFace) return;
             mpb.SetVector(HeadDirectionSid, faceForwardDirectionWs);
             mpb.SetVector(HeadUpDirectionSid, faceUpDirectionWs);
             mpb.SetMatrix(HeadXAxisReflectionMatrixSid, headXAxisReflectionMatrix);
         }
-        
+
         private Vector3 GetFaceDirectionWorldSpace(TransformDirection direction)
         {
             var right = headFace.right;
@@ -193,7 +193,7 @@ namespace Gaku
                 _ => throw new NotImplementedException()
             };
         }
-        
+
         private void FindGakuRenderers()
         {
             GetComponentsInChildren(true, gakuRenderers);
@@ -205,7 +205,7 @@ namespace Gaku
                     .Any(mat => mat.shader.name.Contains("Gaku/Character/Default"));
             });
         }
-        
+
         private void FindBones()
         {
             var children = GetComponentsInChildren<Transform>();
@@ -213,7 +213,7 @@ namespace Gaku
                 headFace = children.FirstOrDefault(t =>
                     t.gameObject.name.Equals("Head_Face", StringComparison.OrdinalIgnoreCase));
         }
-        
+
         private void OnDrawGizmos()
         {
             if (!isDrawGizmo || !headFace) return;
@@ -223,21 +223,21 @@ namespace Gaku
             DrawArrow(position, faceUpDirectionWs, new Color(0, 1, 0, 1f));
             DrawArrow(position, faceRightDirectionWs, new Color(1, 0, 0, 1f));
         }
-        
+
         // https://forum.unity.com/threads/debug-drawarrow.85980/
         private static void DrawArrow(Vector3 pos, Vector3 direction, Color color, float arrowHeadLength = 0.05f, float arrowHeadAngle = 15f)
         {
             if (direction.magnitude == 0) return;
-            
+
             direction *= 0.3f;
             Gizmos.color = color;
             Gizmos.DrawRay(pos, direction);
-            
+
             var right = Quaternion.LookRotation(direction) * Quaternion.Euler(0, 180 + arrowHeadAngle, 0) * new Vector3(0, 0, 1);
             var left  = Quaternion.LookRotation(direction) * Quaternion.Euler(0, 180 - arrowHeadAngle, 0) * new Vector3(0, 0, 1);
             var up    = Quaternion.LookRotation(direction) * Quaternion.Euler(+arrowHeadAngle, 180, 0) * new Vector3(0, 0, 1);
             var down  = Quaternion.LookRotation(direction) * Quaternion.Euler(-arrowHeadAngle, 180, 0) * new Vector3(0, 0, 1);
-            
+
             Gizmos.DrawRay(pos + direction, right * arrowHeadLength);
             Gizmos.DrawRay(pos + direction, left * arrowHeadLength);
             Gizmos.DrawRay(pos + direction, up * arrowHeadLength);
