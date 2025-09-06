@@ -63,6 +63,7 @@ Shader "Gaku/Character/Default"
 
         [HideInInspector] _MatCapMainLight ("MatCap Main Light", Vector) = (0, 0.7071, 0.7071, 0)
         [HideInInspector] _ShadeMultiplyColor ("Shade Multiply Color", Color) = (0,0,0,0)
+        [HideInInspector] _GlobalLightParameter ("Global Light Parameter", Color) = (0,0,0,0)
     }
     SubShader
     {
