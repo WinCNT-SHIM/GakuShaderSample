@@ -159,10 +159,12 @@ namespace Gaku
             material.SetColor(EyeHighlightColorSid, eyeHighlightColor); 
             material.SetVector(OutlineParamSid, new Vector4(outlineWidthMin, outlineWidthMax, outlineFadeScale, outlineFadeStrength));
 
-            if (!headFace) return;
-            material.SetVector(HeadDirectionSid, faceForwardDirectionWs);
-            material.SetVector(HeadUpDirectionSid, faceUpDirectionWs);
-            material.SetMatrix(HeadXAxisReflectionMatrixSid, headXAxisReflectionMatrix);
+            if (headFace)
+            {
+                material.SetVector(HeadDirectionSid, faceForwardDirectionWs);
+                material.SetVector(HeadUpDirectionSid, faceUpDirectionWs);
+                material.SetMatrix(HeadXAxisReflectionMatrixSid, headXAxisReflectionMatrix);
+            }
         }
 
         private void UpdateMaterialPropertyBlock(MaterialPropertyBlock mpb)
@@ -171,10 +173,12 @@ namespace Gaku
             mpb.SetColor(EyeHighlightColorSid, eyeHighlightColor);
             mpb.SetVector(OutlineParamSid, new Vector4(outlineWidthMin, outlineWidthMax, outlineFadeScale, outlineFadeStrength));
 
-            if (!headFace) return;
-            mpb.SetVector(HeadDirectionSid, faceForwardDirectionWs);
-            mpb.SetVector(HeadUpDirectionSid, faceUpDirectionWs);
-            mpb.SetMatrix(HeadXAxisReflectionMatrixSid, headXAxisReflectionMatrix);
+            if (headFace)
+            {
+                mpb.SetVector(HeadDirectionSid, faceForwardDirectionWs);
+                mpb.SetVector(HeadUpDirectionSid, faceUpDirectionWs);
+                mpb.SetMatrix(HeadXAxisReflectionMatrixSid, headXAxisReflectionMatrix);
+            }
         }
 
         private Vector3 GetFaceDirectionWorldSpace(TransformDirection direction)
