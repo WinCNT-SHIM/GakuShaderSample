@@ -87,6 +87,7 @@ half4 GakuLitPassFragment(
     inputData.normalWS = input.NormalWS;
     inputData.viewDirectionWS = GetWorldSpaceNormalizeViewDir(input.PositionWS);
     inputData.normalizedScreenSpaceUV = GetNormalizedScreenSpaceUV(input.PositionCS);
+
     float3 NormalWS = normalize(input.NormalWS);
     NormalWS = IsFront ? NormalWS : NormalWS * -1.0f;
 
@@ -241,6 +242,15 @@ half4 GakuLitPassFragment(
     float3 SH = SampleSH(NormalWS);
     float3 SkyLight = max(SH, 0) * brdfData.diffuse * 0.25; // _GlobalLightParameter.x
 
+    // Rim Light
+    float3 NormalVS = mul(GetWorldToViewMatrix(), float4(NormalWS.xyz, 0.0)).xyz;
+    float RimLight = 1 - dot(NormalVS, normalize(_MatCapRimLight.xyz));
+    RimLight = pow(RimLight, _MatCapRimLight.w);
+    float RimLightMask = min(DefDiffuse * DefDiffuse, 1.0f) * VertexColor.RimMask;
+    RimLight = min(RimLight, 1.0f) * RimLightMask;
+    half3 RimLightColor = lerp(1, RampedLighting, _MatCapRimColor.a) * _MatCapRimColor.xyz;
+    RimLightColor *= RimLight;
+
     half4 color = half4(1, 1, 1, 1);
     color.rgb = brdfData.diffuse;
     color.rgb += Specular;
@@ -284,7 +294,10 @@ half4 GakuLitPassFragment(
     AdditionalLighting += Lighting * (color + AdditionalSpecular);
     LIGHT_LOOP_END
 #endif
+
+    color.rgb += AdditionalLighting;
     color.rgb += SkyLight;
+	color.rgb += RimLightColor;
 
     float alpha = BaseMap.a * _MultiplyColor.a;
     #if defined(_ALPHATEST_ON)

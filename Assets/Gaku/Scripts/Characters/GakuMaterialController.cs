@@ -31,6 +31,13 @@ namespace Gaku
         
         [SerializeField][ColorUsage(true, false)] private Color shadeMultiplyColor = Color.white;
         [SerializeField][ColorUsage(true, true)] private Color eyeHighlightColor = Color.white;
+        
+        [Header("Rim Light")]
+        [SerializeField][ColorUsage(true, true)] private Color rimLightColor = Color.white;
+        [SerializeField] private Vector3 rimLightDirection = Vector3.forward;
+        [SerializeField] private float rimLightPower = 5.0f;
+
+        [Header("Outline")]
         // 최소, 최대 윤곽선 두께 (카메라에 가까울 때 / 멀리 있을 때)
         [SerializeField][Range(0f, 10f)] private float outlineWidthMin = 0.2f;
         [SerializeField][Range(0f, 10f)] private float outlineWidthMax = 1.0f;
@@ -43,6 +50,7 @@ namespace Gaku
         private readonly List<Material> tempMaterialList = new();
         private bool? lastFrameShouldEditMaterial;
         private GakuMaterialController gakuMaterialController;
+        private Vector4 matCapRimLight => new Vector4(rimLightDirection.x, rimLightDirection.y, rimLightDirection.z, rimLightPower);
 
         private Vector3 faceForwardDirectionWs;
         private Vector3 faceUpDirectionWs;
@@ -56,6 +64,8 @@ namespace Gaku
         private static readonly int EyeHighlightColorSid = Shader.PropertyToID("_EyeHighlightColor");
         private static readonly int OutlineParamSid = Shader.PropertyToID("_OutlineParam");
         private static readonly int HeadXAxisReflectionMatrixSid = Shader.PropertyToID("_HeadXAxisReflectionMatrix");
+        private static readonly int MatCapRimColorSid = Shader.PropertyToID("_MatCapRimColor");
+        private static readonly int MatCapRimLightSid = Shader.PropertyToID("_MatCapRimLight");
 #endregion
         
         private void OnEnable()
@@ -158,6 +168,8 @@ namespace Gaku
             material.SetColor(ShadeMultiplyColorSid, shadeMultiplyColor); 
             material.SetColor(EyeHighlightColorSid, eyeHighlightColor); 
             material.SetVector(OutlineParamSid, new Vector4(outlineWidthMin, outlineWidthMax, outlineFadeScale, outlineFadeStrength));
+            material.SetColor(MatCapRimColorSid, rimLightColor);
+            material.SetVector(MatCapRimLightSid, matCapRimLight);
 
             if (headFace)
             {
@@ -172,6 +184,8 @@ namespace Gaku
             mpb.SetColor(ShadeMultiplyColorSid, shadeMultiplyColor); 
             mpb.SetColor(EyeHighlightColorSid, eyeHighlightColor);
             mpb.SetVector(OutlineParamSid, new Vector4(outlineWidthMin, outlineWidthMax, outlineFadeScale, outlineFadeStrength));
+            mpb.SetColor(MatCapRimColorSid, rimLightColor);
+            mpb.SetVector(MatCapRimLightSid, matCapRimLight);
 
             if (headFace)
             {
