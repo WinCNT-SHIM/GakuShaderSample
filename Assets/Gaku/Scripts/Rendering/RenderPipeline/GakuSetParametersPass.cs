@@ -7,9 +7,6 @@ namespace Gaku
 {
     public class GakuSetParametersPass : ScriptableRenderPass
     {
-        private GakuVolume gakuVolume;
-        private Tonemapping tonemapping;
-
         public GakuSetParametersPass()
         {
             profilingSampler = new ProfilingSampler(nameof(GakuSetParametersPass));
@@ -98,7 +95,7 @@ namespace Gaku
             if (volume && volume.active)
             {
                 SetGlobalVolumeParams(graphContext, in passData.gakuSetParametersContext);
-                // SetSceneAmbientLighting();
+                // SetSceneAmbientLighting(volume);
             }
         }
 
@@ -158,83 +155,7 @@ namespace Gaku
             }
         }
 
-        public override void OnCameraSetup(CommandBuffer cmd, ref RenderingData renderingData)
-        {
-            var volumeStack = VolumeManager.instance.stack;
-            gakuVolume = volumeStack.GetComponent<GakuVolume>();
-            tonemapping = volumeStack.GetComponent<Tonemapping>();
-        }
-
-        public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
-        {
-            var cmd = CommandBufferPool.Get();
-            using (new ProfilingScope(cmd, profilingSampler))
-            {
-                SetAdditionalLightKeywords(renderingData, cmd);
-
-                var camera = renderingData.cameraData.camera;
-                SetGlobalShaderParams(renderingData, cmd, camera);
-
-                if (gakuVolume.active)
-                {
-                    SetGlobalVolumeParams(cmd, camera);
-                    // SetSceneAmbientLighting();
-                }
-            }
-
-            context.ExecuteCommandBuffer(cmd);
-            CommandBufferPool.Release(cmd);
-        }
-
-        private static void SetAdditionalLightKeywords(RenderingData renderingData, CommandBuffer cmd)
-        {
-            var mode  = UniversalRenderPipeline.asset.additionalLightsRenderingMode; // PerPixel / PerVertex / Disabled
-            var count = renderingData.lightData.additionalLightsCount;
-
-            var perPixel  = (mode == LightRenderingMode.PerPixel)  && (count > 0);
-            var perVertex = (mode == LightRenderingMode.PerVertex) && (count > 0);
-
-            CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.AdditionalLightsPixel, perPixel);   // _ADDITIONAL_LIGHTS
-            CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.AdditionalLightsVertex, perVertex);  // _ADDITIONAL_LIGHTS_VERTEX
-        }
-
-        private void SetGlobalShaderParams(RenderingData renderingData, CommandBuffer cmd, Camera camera)
-        {
-            cmd.SetGlobalFloat(EnableACESCounterSid,
-                renderingData.postProcessingEnabled && tonemapping && tonemapping.mode.value == TonemappingMode.ACES
-                    ? 1
-                    : 0);
-            var mainLightIndex = renderingData.lightData.mainLightIndex;
-            if (mainLightIndex >= 0)
-            {
-                var mainLight = renderingData.lightData.visibleLights[mainLightIndex];
-                var mainLightDirWS = mainLight.light.transform.forward;
-                var mainLightDirVS = camera.worldToCameraMatrix.MultiplyVector(mainLightDirWS);
-                cmd.SetGlobalVector(GlobalMainLightDirVSSid, -mainLightDirVS);
-            }
-        }
-
-        private void SetGlobalVolumeParams(CommandBuffer cmd, Camera camera)
-        {
-            cmd.SetGlobalFloat(SkinSaturationSid, gakuVolume._SkinSaturation.value);
-
-            cmd.SetGlobalColor(GlobalLightingOverrideColorSid,
-                gakuVolume._GlobalLightingOverrideColor.value);
-            cmd.SetGlobalFloat(GlobalLightingOverrideRatioSid,
-                gakuVolume._GlobalLightingOverrideRatio.value);
-            if (gakuVolume._GlobalLightingOverrideDirection.overrideState)
-            {
-                cmd.SetGlobalFloat(GlobalLightingOverrideDirectionEnabledSid, 1f);
-                cmd.SetGlobalVector(GlobalLightingOverrideDirectionSid,
-                    Quaternion.Euler(gakuVolume._GlobalLightingOverrideDirection.value) * lightOriginDir);
-            }
-            else
-            {
-                cmd.SetGlobalFloat(GlobalLightingOverrideDirectionEnabledSid, 0f);
-            }
-        }
-
-        private void SetSceneAmbientLighting()
+        private void SetSceneAmbientLighting(GakuVolume gakuVolume)
         {
             if (gakuVolume._skyboxMaterial.value)
             {
